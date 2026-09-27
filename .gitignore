@@ -32,3 +32,20 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+coverage/
+lib/generated_plugin_registrant.dart
+
+# Localizzazione generata (flutter gen-l10n)
+lib/l10n/generated/
+
+# Varie
+*.swp
+.DS_Store
+Thumbs.db

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BodyCentre — Anteprima palette Claymorphism</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: "Segoe UI", system-ui, sans-serif;
+    background: #F4F4F8;
+    color: #2E2A4A;
+    padding: 32px 24px 48px;
+  }
+  h1 { text-align: center; font-size: 26px; margin-bottom: 6px; }
+  .sottotitolo { text-align: center; font-size: 14px; opacity: .65; margin-bottom: 32px; }
+  .griglia {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 28px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .palette { border-radius: 28px; overflow: hidden; background: var(--bg); padding: 20px; }
+  .palette h2 { text-align: center; font-size: 19px; margin-bottom: 14px; color: var(--testo); }
+  .nota { text-align:center; font-size: 12px; color: var(--testo); opacity:.6; margin-bottom: 14px; }
+
+  /* ---------- mockup telefono ---------- */
+  .telefono {
+    background: var(--bg);
+    border-radius: 32px;
+    padding: 18px 14px 18px 18px;
+    display: flex;
+    gap: 10px;
+    min-height: 430px;
+  }
+  .contenuto { flex: 1; display: flex; flex-direction: column; gap: 14px; }
+
+  .clay {
+    border-radius: 26px;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--c) 60%, white 40%), var(--c));
+    box-shadow:
+       9px  9px 22px rgba(120,110,160,.22),
+      -7px -7px 18px rgba(255,255,255,.85),
+      inset  3px  3px 8px rgba(255,255,255,.55),
+      inset -3px -3px 8px rgba(0,0,0,.025);
+  }
+
+  /* header profilo */
+  .profilo { padding: 18px; display: flex; align-items: center; gap: 14px; }
+  .avatar {
+    width: 62px; height: 62px; border-radius: 50%;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--acc) 55%, white), var(--acc));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; color: white; font-weight: 700;
+    box-shadow: 5px 5px 12px rgba(120,110,160,.25), inset 2px 2px 6px rgba(255,255,255,.5);
+  }
+  .profilo .nome { font-weight: 700; font-size: 17px; color: var(--testo); }
+  .profilo .sotto { font-size: 12px; color: var(--testo); opacity: .6; margin-top: 2px; }
+  .chips { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .chip {
+    font-size: 11.5px; font-weight: 600; color: var(--testo);
+    background: rgba(255,255,255,.55);
+    padding: 5px 11px; border-radius: 999px;
+    box-shadow: inset 1px 1px 3px rgba(255,255,255,.8), 2px 2px 5px rgba(120,110,160,.12);
+  }
+  .chip.bio { background: var(--acc); color: #fff; box-shadow: 3px 3px 8px rgba(120,110,160,.3), inset 1px 1px 4px rgba(255,255,255,.4); }
+
+  /* tiles statistiche */
+  .riga { display: flex; gap: 12px; }
+  .tile { flex: 1; padding: 14px 16px; }
+  .tile .etichetta { font-size: 11.5px; font-weight: 600; color: var(--testo); opacity: .65; text-transform: uppercase; letter-spacing: .4px; }
+  .tile .valore { font-size: 22px; font-weight: 800; color: var(--testo); margin-top: 3px; }
+  .tile .delta { font-size: 11.5px; font-weight: 600; color: var(--acc); margin-top: 2px; }
+
+  .barra { height: 10px; border-radius: 999px; margin-top: 10px; background: rgba(255,255,255,.6);
+           box-shadow: inset 1px 1px 3px rgba(120,110,160,.18); overflow: hidden; }
+  .barra > div { height: 100%; width: 72%; border-radius: 999px;
+           background: linear-gradient(90deg, color-mix(in srgb, var(--acc) 60%, white), var(--acc));
+           box-shadow: 1px 1px 4px rgba(120,110,160,.35); }
+
+  /* pulsante */
+  .bottone {
+    align-self: stretch; text-align: center; padding: 13px;
+    font-weight: 700; font-size: 14px; color: #fff;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--acc) 55%, white), var(--acc));
+    border-radius: 20px;
+    box-shadow: 6px 6px 14px rgba(120,110,160,.3), inset 2px 2px 5px rgba(255,255,255,.45);
+  }
+
+  /* nav rail destra */
+  .rail {
+    width: 58px; border-radius: 999px; padding: 12px 0;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    background: linear-gradient(160deg, rgba(255,255,255,.75), rgba(255,255,255,.45));
+    box-shadow: 8px 8px 18px rgba(120,110,160,.18), -6px -6px 16px rgba(255,255,255,.9),
+                inset 2px 2px 6px rgba(255,255,255,.7);
+  }
+  .rail .voce {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+  }
+  .rail .voce.attiva {
+    background: linear-gradient(145deg, color-mix(in srgb, var(--acc) 55%, white), var(--acc));
+    box-shadow: 4px 4px 10px rgba(120,110,160,.3), inset 1.5px 1.5px 4px rgba(255,255,255,.5);
+  }
+
+  /* swatches */
+  .swatches { display: flex; gap: 8px; margin-top: 14px; }
+  .sw { flex: 1; border-radius: 14px; overflow: hidden; text-align: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,.08); }
+  .sw .colore { height: 44px; }
+  .sw .hex { font-size: 10px; padding: 4px 2px; background: #fff; color: #444; font-weight: 600; }
+
+  /* demo dark */
+  .dark-demo { --bg:#232333; --c:#2E2E46; --c2:#33334E; --acc:#9D8CFF; --testo:#ECEAF6; }
+  .dark-demo .clay {
+    box-shadow:
+       9px  9px 22px rgba(0,0,0,.45),
+      -7px -7px 18px rgba(255,255,255,.045),
+      inset  3px  3px 8px rgba(255,255,255,.07),
+      inset -3px -3px 8px rgba(0,0,0,.25);
+  }
+  .dark-demo .chip { background: rgba(255,255,255,.08); }
+  .dark-demo .rail { background: linear-gradient(160deg, rgba(255,255,255,.10), rgba(255,255,255,.04)); }
+  .dark-demo .barra { background: rgba(255,255,255,.1); }
+</style>
+</head>
+<body>
+
+<h1>BodyCentre — Palette Claymorphism</h1>
+<p class="sottotitolo">Tre proposte light + un assaggio di versione dark. Stessa identica UI, cambiano solo i colori.</p>
+
+<div class="griglia">
+
+  <!-- ================= 1. LAVANDA & CREMA ================= -->
+  <section class="palette" style="--bg:#ECEAF4; --c:#E6DFFF; --c2:#FFE8D6; --c3:#D6F0EB; --acc:#7C6AF0; --testo:#2E2A4A;">
+    <h2>1 · Lavanda &amp; Crema</h2>
+    <p class="nota">Il claymorphism classico: morbido, elegante, molto "clay"</p>
+    <div class="telefono">
+      <div class="contenuto">
+        <div class="clay profilo" style="--c:#E6DFFF">
+          <div class="avatar">MR</div>
+          <div>
+            <div class="nome">Mario Rossi</div>
+            <div class="sotto">Dashboard personale</div>
+            <div class="chips">
+              <span class="chip">Età 23</span><span class="chip">180 cm</span><span class="chip bio">Bio 21</span>
+            </div>
+          </div>
+        </div>
+        <div class="riga">
+          <div class="clay tile" style="--c:#D6F0EB"><div class="etichetta">Peso</div><div class="valore">78,2 kg</div><div class="delta">▼ 1,4 kg / 30gg</div></div>
+          <div class="clay tile" style="--c:#FFE8D6"><div class="etichetta">Calorie</div><div class="valore">1850</div><div class="barra"><div></div></div></div>
+        </div>
+        <div class="bottone">+ Aggiungi pasto</div>
+      </div>
+      <div class="rail">
+        <div class="voce attiva">🏠</div><div class="voce">🔥</div><div class="voce">💧</div><div class="voce">🏋️</div>
+      </div>
+    </div>
+    <div class="swatches">
+      <div class="sw"><div class="colore" style="background:#ECEAF4"></div><div class="hex">#ECEAF4 sfondo</div></div>
+      <div class="sw"><div class="colore" style="background:#E6DFFF"></div><div class="hex">#E6DFFF card</div></div>
+      <div class="sw"><div class="colore" style="background:#FFE8D6"></div><div class="hex">#FFE8D6 cal.</div></div>
+      <div class="sw"><div class="colore" style="background:#D6F0EB"></div><div class="hex">#D6F0EB peso</div></div>
+      <div class="sw"><div class="colore" style="background:#7C6AF0"></div><div class="hex">#7C6AF0 accento</div></div>
+      <div class="sw"><div class="colore" style="background:#2E2A4A"></div><div class="hex">#2E2A4A testo</div></div>
+    </div>
+  </section>
+
+  <!-- ================= 2. MENTA & AZZURRO ================= -->
+  <section class="palette" style="--bg:#E9F3F7; --c:#D6EEF5; --c2:#FFF3D6; --c3:#D9F2E5; --acc:#2FA8A0; --testo:#1F3A44;">
+    <h2>2 · Menta &amp; Azzurro</h2>
+    <p class="nota">Fresco e sportivo, richiama salute e benessere</p>
+    <div class="telefono">
+      <div class="contenuto">
+        <div class="clay profilo" style="--c:#D6EEF5">
+          <div class="avatar">MR</div>
+          <div>
+            <div class="nome">Mario Rossi</div>
+            <div class="sotto">Dashboard personale</div>
+            <div class="chips">
+              <span class="chip">Età 23</span><span class="chip">180 cm</span><span class="chip bio">Bio 21</span>
+            </div>
+          </div>
+        </div>
+        <div class="riga">
+          <div class="clay tile" style="--c:#D9F2E5"><div class="etichetta">Peso</div><div class="valore">78,2 kg</div><div class="delta">▼ 1,4 kg / 30gg</div></div>
+          <div class="clay tile" style="--c:#FFF3D6"><div class="etichetta">Calorie</div><div class="valore">1850</div><div class="barra"><div></div></div></div>
+        </div>
+        <div class="bottone">+ Aggiungi pasto</div>
+      </div>
+      <div class="rail">
+        <div class="voce attiva">🏠</div><div class="voce">🔥</div><div class="voce">💧</div><div class="voce">🏋️</div>
+      </div>
+    </div>
+    <div class="swatches">
+      <div class="sw"><div class="colore" style="background:#E9F3F7"></div><div class="hex">#E9F3F7 sfondo</div></div>
+      <div class="sw"><div class="colore" style="background:#D6EEF5"></div><div class="hex">#D6EEF5 card</div></div>
+      <div class="sw"><div class="colore" style="background:#FFF3D6"></div><div class="hex">#FFF3D6 cal.</div></div>
+      <div class="sw"><div class="colore" style="background:#D9F2E5"></div><div class="hex">#D9F2E5 peso</div></div>
+      <div class="sw"><div class="colore" style="background:#2FA8A0"></div><div class="hex">#2FA8A0 accento</div></div>
+      <div class="sw"><div class="colore" style="background:#1F3A44"></div><div class="hex">#1F3A44 testo</div></div>
+    </div>
+  </section>
+
+  <!-- ================= 3. PESCA & ROSA ================= -->
+  <section class="palette" style="--bg:#FAEFE9; --c:#FFDFD0; --c2:#FFE9C7; --c3:#FBD9E0; --acc:#F0705A; --testo:#4A2E28;">
+    <h2>3 · Pesca &amp; Rosa</h2>
+    <p class="nota">Caldo, energico, molto amichevole</p>
+    <div class="telefono">
+      <div class="contenuto">
+        <div class="clay profilo" style="--c:#FFDFD0">
+          <div class="avatar">MR</div>
+          <div>
+            <div class="nome">Mario Rossi</div>
+            <div class="sotto">Dashboard personale</div>
+            <div class="chips">
+              <span class="chip">Età 23</span><span class="chip">180 cm</span><span class="chip bio">Bio 21</span>
+            </div>
+          </div>
+        </div>
+        <div class="riga">
+          <div class="clay tile" style="--c:#FBD9E0"><div class="etichetta">Peso</div><div class="valore">78,2 kg</div><div class="delta">▼ 1,4 kg / 30gg</div></div>
+          <div class="clay tile" style="--c:#FFE9C7"><div class="etichetta">Calorie</div><div class="valore">1850</div><div class="barra"><div></div></div></div>
+        </div>
+        <div class="bottone">+ Aggiungi pasto</div>
+      </div>
+      <div class="rail">
+        <div class="voce attiva">🏠</div><div class="voce">🔥</div><div class="voce">💧</div><div class="voce">🏋️</div>
+      </div>
+    </div>
+    <div class="swatches">
+      <div class="sw"><div class="colore" style="background:#FAEFE9"></div><div class="hex">#FAEFE9 sfondo</div></div>
+      <div class="sw"><div class="colore" style="background:#FFDFD0"></div><div class="hex">#FFDFD0 card</div></div>
+      <div class="sw"><div class="colore" style="background:#FFE9C7"></div><div class="hex">#FFE9C7 cal.</div></div>
+      <div class="sw"><div class="colore" style="background:#FBD9E0"></div><div class="hex">#FBD9E0 peso</div></div>
+      <div class="sw"><div class="colore" style="background:#F0705A"></div><div class="hex">#F0705A accento</div></div>
+      <div class="sw"><div class="colore" style="background:#4A2E28"></div><div class="hex">#4A2E28 testo</div></div>
+    </div>
+  </section>
+
+  <!-- ================= 4. DEMO DARK ================= -->
+  <section class="palette dark-demo">
+    <h2>4 · Assaggio "Dark Clay"</h2>
+    <p class="nota">Come diventerebbe la palette 1 in tema scuro (ombre ridotte)</p>
+    <div class="telefono">
+      <div class="contenuto">
+        <div class="clay profilo">
+          <div class="avatar">MR</div>
+          <div>
+            <div class="nome">Mario Rossi</div>
+            <div class="sotto">Dashboard personale</div>
+            <div class="chips">
+              <span class="chip">Età 23</span><span class="chip">180 cm</span><span class="chip bio">Bio 21</span>
+            </div>
+          </div>
+        </div>
+        <div class="riga">
+          <div class="clay tile" style="--c:#2F3A46"><div class="etichetta">Peso</div><div class="valore">78,2 kg</div><div class="delta">▼ 1,4 kg / 30gg</div></div>
+          <div class="clay tile" style="--c:#3A3630"><div class="etichetta">Calorie</div><div class="valore">1850</div><div class="barra"><div></div></div></div>
+        </div>
+        <div class="bottone">+ Aggiungi pasto</div>
+      </div>
+      <div class="rail">
+        <div class="voce attiva">🏠</div><div class="voce">🔥</div><div class="voce">💧</div><div class="voce">🏋️</div>
+      </div>
+    </div>
+    <div class="swatches">
+      <div class="sw"><div class="colore" style="background:#232333"></div><div class="hex">#232333 sfondo</div></div>
+      <div class="sw"><div class="colore" style="background:#2E2E46"></div><div class="hex">#2E2E46 card</div></div>
+      <div class="sw"><div class="colore" style="background:#9D8CFF"></div><div class="hex">#9D8CFF accento</div></div>
+      <div class="sw"><div class="colore" style="background:#ECEAF6"></div><div class="hex">#ECEAF6 testo</div></div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

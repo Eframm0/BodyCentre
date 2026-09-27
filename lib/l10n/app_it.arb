@@ -1,0 +1,37 @@
+{
+  "@@locale": "it",
+  "appName": "BodyCentre",
+  "navHome": "Home",
+  "navCalories": "Calorie",
+  "navWeight": "Peso forma",
+  "navWorkout": "Allenamento",
+  "dashboardSubtitle": "Dashboard personale",
+  "ageChip": "Età: {years}",
+  "@ageChip": { "placeholders": { "years": { "type": "int" } } },
+  "heightChip": "Altezza: {cm} cm",
+  "@heightChip": { "placeholders": { "cm": { "type": "int" } } },
+  "bioAgeChip": "Età biologica: {years}",
+  "@bioAgeChip": { "placeholders": { "years": { "type": "int" } } },
+  "weightTile": "Peso",
+  "weightDelta": "{delta} kg · 30 giorni",
+  "@weightDelta": { "placeholders": { "delta": { "type": "String" } } },
+  "caloriesTile": "Calorie",
+  "caloriesProgress": "{eaten} di {target} kcal",
+  "@caloriesProgress": {
+    "placeholders": {
+      "eaten": { "type": "String" },
+      "target": { "type": "String" }
+    }
+  },
+  "weightTrendTitle": "Andamento peso",
+  "caloriesWeekTitle": "Calorie · ultimi 7 giorni",
+  "legendIntake": "Assunte",
+  "legendBurned": "Bruciate",
+  "aiPredictionWeight": "Previsione AI: circa {kg} kg tra 30 giorni",
+  "@aiPredictionWeight": { "placeholders": { "kg": { "type": "String" } } },
+  "quickAddMeal": "Pasto",
+  "quickAddWeight": "Peso",
+  "quickNewWorkout": "Allenamento",
+  "comingSoonTitle": "In arrivo",
+  "comingSoonMessage": "Questa sezione sarà disponibile prossimamente."
+}
