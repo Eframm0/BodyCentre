@@ -29,16 +29,27 @@ class StatTilesRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    guardFirstGlyph(l.weightTile),
-                    style: const TextStyle(
-                      fontFamily: 'Nunito',
-                      fontSize: 11,
-                      // w700: a 11px il peso w800 del font variabile perde il
-                      // primo glifo nel rendering (bug verificato su device).
-                      fontWeight: FontWeight.w700,
-                      color: ClayPalette.textSoft,
-                    ),
+                  // Etichetta ridisegnata: icona prima del testo (le icone non
+                  // sono mai state colpite dal bug) + Baloo2 13px maiuscolo
+                  // (classe di testo mai osservata rotta) + guardia ZWSP.
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.monitor_weight_rounded,
+                        size: 14,
+                        color: ClayPalette.accentDark,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        guardFirstGlyph(l.weightTile.toUpperCase()),
+                        style: baloo(
+                          size: 13,
+                          weight: FontWeight.w700,
+                          color: ClayPalette.textSoft,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 3),
                   Text(
@@ -84,14 +95,24 @@ class StatTilesRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    guardFirstGlyph(l.caloriesTile),
-                    style: const TextStyle(
-                      fontFamily: 'Nunito',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: ClayPalette.textSoft,
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.local_fire_department_rounded,
+                        size: 14,
+                        color: ClayPalette.accentDark,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        guardFirstGlyph(l.caloriesTile.toUpperCase()),
+                        style: baloo(
+                          size: 13,
+                          weight: FontWeight.w700,
+                          color: ClayPalette.textSoft,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 3),
                   Text(

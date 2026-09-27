@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/design/clay.dart';
 import '../../../core/design/palette.dart';
 import '../../../core/design/theme.dart';
+import '../../../core/utils/text_guard.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../home_mock_data.dart';
 
@@ -61,7 +62,7 @@ class ProfileHeaderCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  l.dashboardSubtitle,
+                  guardFirstGlyph(l.dashboardSubtitle),
                   style: const TextStyle(
                     fontFamily: 'Nunito',
                     fontSize: 12,

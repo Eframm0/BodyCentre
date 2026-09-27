@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../core/design/clay.dart';
 import '../../../core/design/palette.dart';
 import '../../../core/utils/format.dart';
+import '../../../core/utils/text_guard.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../home_mock_data.dart';
 
@@ -35,7 +36,7 @@ class WeightChartCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                l.weightTrendTitle,
+                guardFirstGlyph(l.weightTrendTitle),
                 style: const TextStyle(
                   fontFamily: 'Nunito',
                   fontSize: 15,
@@ -114,8 +115,10 @@ class WeightChartCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  l.aiPredictionWeight(
-                    formatKg(HomeMockData.predictedWeight30d),
+                  guardFirstGlyph(
+                    l.aiPredictionWeight(
+                      formatKg(HomeMockData.predictedWeight30d),
+                    ),
                   ),
                   style: const TextStyle(
                     fontFamily: 'Nunito',

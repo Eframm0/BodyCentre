@@ -38,7 +38,7 @@ class CaloriesWeekCard extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  l.caloriesWeekTitle,
+                  guardFirstGlyph(l.caloriesWeekTitle),
                   style: const TextStyle(
                     fontFamily: 'Nunito',
                     fontSize: 15,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../utils/text_guard.dart';
 import 'palette.dart';
 
 /// Widget di base dello stile claymorphism: superficie "plastilina" con
@@ -150,7 +151,7 @@ class ClayChip extends StatelessWidget {
     final content =
         text != null
             ? Text(
-              text!,
+              guardFirstGlyph(text!),
               style: TextStyle(
                 fontFamily: 'Nunito',
                 fontSize: 12,
@@ -233,7 +234,7 @@ class ClayButton extends StatelessWidget {
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  label,
+                  guardFirstGlyph(label),
                   style: const TextStyle(
                     fontFamily: 'Nunito',
                     fontSize: 14,

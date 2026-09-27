@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/design/clay.dart';
 import '../../core/design/palette.dart';
 import '../../core/design/theme.dart';
+import '../../core/utils/text_guard.dart';
 import '../../l10n/generated/app_localizations.dart';
 
 /// Pagina segnaposto per le sezioni non ancora implementate.
@@ -63,10 +64,10 @@ class ComingSoonPage extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Text(title, style: baloo(size: 26)),
+                  Text(guardFirstGlyph(title), style: baloo(size: 26)),
                   const SizedBox(height: 6),
                   Text(
-                    l.comingSoonMessage,
+                    guardFirstGlyph(l.comingSoonMessage),
                     textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontFamily: 'Nunito',
