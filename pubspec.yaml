@@ -69,9 +69,18 @@ flutter:
     - assets/fonts/
 
   fonts:
+    # Istanze statiche di Nunito (non font variabile): su alcuni device il
+    # rendering del font variabile perde il primo glifo a pesi/corpi piccoli.
     - family: Nunito
       fonts:
-        - asset: assets/fonts/Nunito.ttf
+        - asset: assets/fonts/Nunito-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Nunito-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Nunito-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Nunito-ExtraBold.ttf
+          weight: 800
     - family: Baloo2
       fonts:
         - asset: assets/fonts/Baloo2.ttf

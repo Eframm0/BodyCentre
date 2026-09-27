@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/material.dart';
 
 import '../../core/design/clay.dart';
@@ -84,25 +86,33 @@ class ClayNavRail extends StatelessWidget {
       (AppSection.workout, Icons.fitness_center_rounded),
     ];
 
-    return ClayCard(
-      radius: 999,
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final (i, (section, icon)) in items.indexed) ...[
-            if (i > 0) const SizedBox(height: 10),
-            Tooltip(
-              message: labels.of(section),
-              child: _RailButton(
-                icon: icon,
-                active: section == current,
-                onTap: () => onSelected(section),
-              ),
-            ),
-          ],
-        ],
+    // Pill flottante in "vetro clay": sfondo semitrasparente + blur del
+    // contenuto che scorre sotto, così non ruba spazio al layout.
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(999),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 9, sigmaY: 9),
+        child: ClayCard(
+          radius: 999,
+          color: Colors.white.withValues(alpha: 0.55),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final (i, (section, icon)) in items.indexed) ...[
+                if (i > 0) const SizedBox(height: 10),
+                Tooltip(
+                  message: labels.of(section),
+                  child: _RailButton(
+                    icon: icon,
+                    active: section == current,
+                    onTap: () => onSelected(section),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

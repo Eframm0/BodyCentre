@@ -36,39 +36,45 @@ class AppShell extends ConsumerWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 12, 10),
-          child: Row(
-            children: [
-              Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 340),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeIn,
-                  transitionBuilder:
-                      (child, animation) => FadeTransition(
-                        opacity: animation,
-                        child: ScaleTransition(
-                          scale: Tween(begin: 0.985, end: 1.0).animate(
-                            CurvedAnimation(parent: animation, curve: Curves.easeOut),
-                          ),
-                          child: child,
+        child: Stack(
+          children: [
+            // Contenuto a tutta larghezza: scorre sotto la nav rail flottante.
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 340),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeIn,
+                transitionBuilder:
+                    (child, animation) => FadeTransition(
+                      opacity: animation,
+                      child: ScaleTransition(
+                        scale: Tween(begin: 0.985, end: 1.0).animate(
+                          CurvedAnimation(parent: animation, curve: Curves.easeOut),
                         ),
+                        child: child,
                       ),
-                  child: KeyedSubtree(
-                    key: ValueKey(section),
-                    child: pages[section]!,
-                  ),
+                    ),
+                child: KeyedSubtree(
+                  key: ValueKey(section),
+                  child: pages[section]!,
                 ),
               ),
-              const SizedBox(width: 12),
-              ClayNavRail(
-                current: section,
-                onSelected: select,
-                labels: labels,
+            ),
+            // Nav rail sovrapposta al contenuto (pill in vetro, centrata a destra).
+            Positioned(
+              top: 0,
+              bottom: 0,
+              right: 6,
+              child: Center(
+                child: ClayNavRail(
+                  current: section,
+                  onSelected: select,
+                  labels: labels,
+                ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

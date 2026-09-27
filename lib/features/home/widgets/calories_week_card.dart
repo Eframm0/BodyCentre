@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/design/clay.dart';
 import '../../../core/design/palette.dart';
+import '../../../core/utils/text_guard.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../home_mock_data.dart';
 
@@ -80,7 +81,7 @@ class CaloriesWeekCard extends StatelessWidget {
                         return SideTitleWidget(
                           meta: meta,
                           child: Text(
-                            letters[days[i].weekday - 1],
+                            guardFirstGlyph(letters[days[i].weekday - 1]),
                             style: const TextStyle(
                               fontFamily: 'Nunito',
                               fontSize: 10,
@@ -149,7 +150,7 @@ class _LegendDot extends StatelessWidget {
         ),
         const SizedBox(width: 5),
         Text(
-          label,
+          guardFirstGlyph(label),
           style: const TextStyle(
             fontFamily: 'Nunito',
             fontSize: 11,

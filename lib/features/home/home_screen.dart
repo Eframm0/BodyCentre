@@ -26,7 +26,9 @@ class HomeScreen extends StatelessWidget {
     ];
 
     return ListView(
-      padding: const EdgeInsets.only(top: 6, bottom: 24),
+      // Contenuto a tutta larghezza: la nav rail flottante si sovrappone
+      // alle card (richiesta esplicita di design).
+      padding: const EdgeInsets.fromLTRB(0, 6, 16, 24),
       children: [
         for (final (i, section) in sections.indexed)
           Padding(

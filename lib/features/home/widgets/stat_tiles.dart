@@ -4,6 +4,7 @@ import '../../../core/design/clay.dart';
 import '../../../core/design/palette.dart';
 import '../../../core/design/theme.dart';
 import '../../../core/utils/format.dart';
+import '../../../core/utils/text_guard.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../home_mock_data.dart';
 
@@ -29,12 +30,13 @@ class StatTilesRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l.weightTile,
+                    guardFirstGlyph(l.weightTile),
                     style: const TextStyle(
                       fontFamily: 'Nunito',
                       fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
+                      // w700: a 11px il peso w800 del font variabile perde il
+                      // primo glifo nel rendering (bug verificato su device).
+                      fontWeight: FontWeight.w700,
                       color: ClayPalette.textSoft,
                     ),
                   ),
@@ -56,7 +58,7 @@ class StatTilesRow extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        l.weightDelta(formatDelta(delta)),
+                        guardFirstGlyph(l.weightDelta(formatDelta(delta))),
                         style: const TextStyle(
                           fontFamily: 'Nunito',
                           fontSize: 11,
@@ -83,12 +85,11 @@ class StatTilesRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l.caloriesTile,
+                    guardFirstGlyph(l.caloriesTile),
                     style: const TextStyle(
                       fontFamily: 'Nunito',
                       fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.5,
+                      fontWeight: FontWeight.w700,
                       color: ClayPalette.textSoft,
                     ),
                   ),
@@ -106,9 +107,11 @@ class StatTilesRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    l.caloriesProgress(
-                      formatKcal(HomeMockData.todayKcalEaten),
-                      formatKcal(HomeMockData.dailyKcalTarget),
+                    guardFirstGlyph(
+                      l.caloriesProgress(
+                        formatKcal(HomeMockData.todayKcalEaten),
+                        formatKcal(HomeMockData.dailyKcalTarget),
+                      ),
                     ),
                     style: const TextStyle(
                       fontFamily: 'Nunito',

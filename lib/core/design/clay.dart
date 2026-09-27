@@ -227,13 +227,20 @@ class ClayButton extends StatelessWidget {
           children: [
             Icon(icon, color: Colors.white, size: 19),
             const SizedBox(width: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                fontFamily: 'Nunito',
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
+            // FittedBox: su schermi stretti (o con lingue dalle parole lunghe)
+            // il testo si riduce invece di traboccare.
+            Flexible(
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  style: const TextStyle(
+                    fontFamily: 'Nunito',
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
           ],

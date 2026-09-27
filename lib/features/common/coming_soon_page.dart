@@ -25,7 +25,7 @@ class ComingSoonPage extends StatelessWidget {
 
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(8),
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
