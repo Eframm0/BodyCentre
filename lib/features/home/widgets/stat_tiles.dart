@@ -36,8 +36,8 @@ class StatTilesRow extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
-                        Icons.monitor_weight_rounded,
-                        size: 16,
+                        Icons.scale_rounded,
+                        size: 20,
                         color: ClayPalette.accentDark,
                       ),
                       const SizedBox(width: 5),
@@ -100,7 +100,7 @@ class StatTilesRow extends StatelessWidget {
                     children: [
                       const Icon(
                         Icons.local_fire_department_rounded,
-                        size: 16,
+                        size: 20,
                         color: ClayPalette.accentDark,
                       ),
                       const SizedBox(width: 5),

@@ -9,6 +9,8 @@ import '../workout/workout_page.dart';
 import 'clay_nav_rail.dart';
 import 'nav_provider.dart';
 
+// (railVisibleProvider / appSectionProvider vengono da nav_provider.dart)
+
 /// Guscio dell'app: contenuto a sinistra + nav rail verticale clay a destra
 /// (come da schema UI). Il cambio sezione è animato con fade + micro-scale.
 class AppShell extends ConsumerWidget {
@@ -18,6 +20,8 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final section = ref.watch(appSectionProvider);
     final select = ref.read(appSectionProvider.notifier).select;
+    final railVisible = ref.watch(railVisibleProvider);
+    final rail = ref.read(railVisibleProvider.notifier);
     final l = AppLocalizations.of(context)!;
 
     final labels = AppSectionLabelSet(
@@ -61,16 +65,47 @@ class AppShell extends ConsumerWidget {
                 ),
               ),
             ),
-            // Nav rail sovrapposta al contenuto (pill in vetro, centrata a destra).
+            // Fascia di rilevamento sul lato destro (larga, solo swipe):
+            // swipe verso sinistra riporta la rail, verso destra la nasconde.
+            // Translucent: tap e scroll verticali passano al contenuto.
             Positioned(
               top: 0,
               bottom: 0,
-              right: 6,
+              right: 0,
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onHorizontalDragEnd: (details) {
+                  final v = details.primaryVelocity ?? 0;
+                  if (v < -80) {
+                    rail.show();
+                  } else if (v > 80) {
+                    rail.hide();
+                  }
+                },
+                child: const SizedBox(width: 120),
+              ),
+            ),
+            // Nav rail flottante: entra con leggero rimbalzo (easeOutBack),
+            // esce accelerando (easeInCubic).
+            AnimatedPositioned(
+              duration:
+                  railVisible
+                      ? const Duration(milliseconds: 340)
+                      : const Duration(milliseconds: 200),
+              curve: railVisible ? Curves.easeOutBack : Curves.easeInCubic,
+              top: 0,
+              bottom: 0,
+              right: railVisible ? 6 : -76,
               child: Center(
-                child: ClayNavRail(
-                  current: section,
-                  onSelected: select,
-                  labels: labels,
+                child: GestureDetector(
+                  onHorizontalDragEnd: (details) {
+                    if ((details.primaryVelocity ?? 0) > 80) rail.hide();
+                  },
+                  child: ClayNavRail(
+                    current: section,
+                    onSelected: select,
+                    labels: labels,
+                  ),
                 ),
               ),
             ),

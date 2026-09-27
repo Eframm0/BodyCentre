@@ -119,12 +119,18 @@ class CaloriesWeekCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              _LegendDot(color: ClayPalette.amber, label: l.legendIntake),
-              const SizedBox(width: 14),
-              _LegendDot(color: ClayPalette.accent, label: l.legendBurned),
-            ],
+          // Padding sinistro: il primo elemento della legenda veniva
+          // troncato da un taglio verticale al bordo sinistro del contenuto
+          // (visibile su device in screenshot). Traslato a destra.
+          Padding(
+            padding: const EdgeInsets.only(left: 12),
+            child: Row(
+              children: [
+                _LegendDot(color: ClayPalette.amber, label: l.legendIntake),
+                const SizedBox(width: 14),
+                _LegendDot(color: ClayPalette.accent, label: l.legendBurned),
+              ],
+            ),
           ),
         ],
       ),
@@ -140,25 +146,25 @@ class _LegendDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 9,
-          height: 9,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+    // Pill tintata con bordo colorato: sostituisce il pallino circolare,
+    // il cui rendering risultava corrotto su alcuni device in tutti i
+    // percorsi provati (oval, rounded-rect, canvas).
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(999),
+        color: color.withValues(alpha: 0.16),
+        border: Border.all(color: color, width: 1.5),
+      ),
+      child: Text(
+        guardFirstGlyph(label),
+        style: TextStyle(
+          fontFamily: 'Nunito',
+          fontSize: 10.5,
+          fontWeight: FontWeight.w700,
+          color: Color.lerp(color, ClayPalette.text, 0.35),
         ),
-        const SizedBox(width: 5),
-        Text(
-          guardFirstGlyph(label),
-          style: const TextStyle(
-            fontFamily: 'Nunito',
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            color: ClayPalette.textSoft,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

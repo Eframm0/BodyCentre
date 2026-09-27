@@ -30,7 +30,7 @@ class WeightChartCard extends StatelessWidget {
           Row(
             children: [
               const Icon(
-                Icons.monitor_weight_rounded,
+                Icons.trending_down_rounded,
                 size: 20,
                 color: ClayPalette.accentDark,
               ),
