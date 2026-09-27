@@ -4,12 +4,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('L\'app si avvia e mostra la shell', (WidgetTester tester) async {
-    await tester.pumpWidget(
-      const ProviderScope(child: BodyCentreApp()),
-    );
-    await tester.pumpAndSettle();
+  // N.B. niente pumpAndSettle: la Home ha animazioni in loop (chip età
+  // biologica) che non si "assestano" mai.
+  testWidgets('L\'app si avvia sulla Home con i dati del profilo', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(const ProviderScope(child: BodyCentreApp()));
+    await tester.pump(const Duration(milliseconds: 600));
 
     expect(find.byType(Scaffold), findsOneWidget);
+    expect(find.text('Mario Rossi'), findsOneWidget);
+    expect(find.byKey(const ValueKey('weight-chart-card')), findsOneWidget);
+    expect(find.byKey(const ValueKey('calories-week-card')), findsOneWidget);
   });
 }

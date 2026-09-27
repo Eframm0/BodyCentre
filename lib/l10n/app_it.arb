@@ -33,5 +33,9 @@
   "quickAddWeight": "Peso",
   "quickNewWorkout": "Allenamento",
   "comingSoonTitle": "In arrivo",
-  "comingSoonMessage": "Questa sezione sarà disponibile prossimamente."
+  "comingSoonMessage": "Questa sezione sarà disponibile prossimamente.",
+  "weekdayLetters": "LMMGVSD",
+  "@weekdayLetters": {
+    "description": "Iniziali dei giorni della settimana, da lunedì a domenica."
+  }
 }
