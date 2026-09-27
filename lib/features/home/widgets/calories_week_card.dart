@@ -32,7 +32,7 @@ class CaloriesWeekCard extends StatelessWidget {
             children: [
               const Icon(
                 Icons.local_fire_department_rounded,
-                size: 18,
+                size: 20,
                 color: ClayPalette.accentDark,
               ),
               const SizedBox(width: 8),

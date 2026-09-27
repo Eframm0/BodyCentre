@@ -46,7 +46,7 @@ class ProfileHeaderCard extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                initials,
+                guardFirstGlyph(initials),
                 style: baloo(size: 22, color: Colors.white),
               ),
             ),

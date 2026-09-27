@@ -37,7 +37,7 @@ class StatTilesRow extends StatelessWidget {
                     children: [
                       const Icon(
                         Icons.monitor_weight_rounded,
-                        size: 14,
+                        size: 16,
                         color: ClayPalette.accentDark,
                       ),
                       const SizedBox(width: 5),
@@ -64,7 +64,7 @@ class StatTilesRow extends StatelessWidget {
                         delta <= 0
                             ? Icons.trending_down_rounded
                             : Icons.trending_up_rounded,
-                        size: 14,
+                        size: 16,
                         color: ClayPalette.accentDark,
                       ),
                       const SizedBox(width: 4),
@@ -100,7 +100,7 @@ class StatTilesRow extends StatelessWidget {
                     children: [
                       const Icon(
                         Icons.local_fire_department_rounded,
-                        size: 14,
+                        size: 16,
                         color: ClayPalette.accentDark,
                       ),
                       const SizedBox(width: 5),
