@@ -7,7 +7,8 @@ plugins {
 android {
     namespace = "com.bodycentre.body_centre"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    // NDK non necessario: l'app non ha codice nativo. Rimuovere se si
+    // aggiungono plugin con parti native (es. sqlite3_flutter_libs).
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
