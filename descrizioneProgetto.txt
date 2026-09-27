@@ -1,0 +1,33 @@
+
+Nome App: BodyCentre
+Descrizione: App fitness/salute per Android (Flutter), con integrazione a Google Health Connect e un piccolo modello di rete neurale on-device per previsioni personalizzate.
+Sezioni principali:
+Home – Dashboard riassuntiva (grafici/immagini) delle altre sezioni. In alto: dati utente (nome, cognome, età, altezza, età biologica calcolata in base allo stato di cura della persona).
+
+
+Calorie – Contacalorie per cibo/bevande e tracciamento calorie bruciate (passi, allenamenti).
+
+
+Peso forma – Registrazione peso, composizione corporea e foto associate.
+
+
+Allenamento – Creazione allenamenti con esercizi personalizzati o predefiniti (questi ultimi con breve descrizione e immagine). Mappa coropletica del corpo per visualizzare i gruppi muscolari più/meno allenati.
+
+
+Funzionalità AI (rete neurale leggera, on-device):
+Previsione dimagrimento/ingrassamento, basata su:
+
+
+calorie introdotte e macronutrienti
+calorie bruciate (allenamenti, passi)
+peso e composizione corporea (se inseriti)
+Previsione massimale nel prossimo allenamento (numero di rep), basata su:
+
+
+progressi negli allenamenti precedenti
+calorie introdotte (in deficit calorico, minore probabilità di progresso)
+Requisiti tecnici:
+Piattaforma: Android (fase iniziale)
+Framework: Flutter
+Integrazione con Google Health Connect
+Modello ML leggero, eseguito interamente sul dispositivo
