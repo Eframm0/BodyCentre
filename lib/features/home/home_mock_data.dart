@@ -1,18 +1,11 @@
 import 'dart:math' as math;
 
-/// Dati fittizi per la dashboard.
+/// Dati fittizi per i GRAFICI della dashboard.
 ///
-/// TODO(M1+): sostituire con i repository drift (profilo reale,
-/// rilevazioni peso, diario calorico). Esiste solo per dare forma alla UI.
+/// Il profilo nella Home ora viene dal database reale; questi mock restano
+/// solo per il grafico peso e le calorie finché M2 (rilevazioni peso) e
+/// Task 3 (diario calorico reale) non li sostituiscono.
 abstract final class HomeMockData {
-  static const firstName = 'Mario';
-  static const lastName = 'Rossi';
-  static const age = 23;
-  static const heightCm = 180;
-
-  /// Età biologica calcolata (vedi PROGETTAZIONE.md §9) — mock.
-  static const bioAge = 21;
-
   /// 30 rilevazioni di peso (kg): trend in discesa con oscillazioni.
   static List<double> get weights => List.generate(
     30,

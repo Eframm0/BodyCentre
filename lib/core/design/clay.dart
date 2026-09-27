@@ -217,13 +217,16 @@ class ClayButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClayPressable(
+    final button = ClayPressable(
       onTap: onTap,
       child: ClayCard(
         color: ClayPalette.accent,
         radius: 20,
-        padding: const EdgeInsets.symmetric(vertical: 13),
+        padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 18),
         child: Row(
+          // min: nelle righe non vincolate (bottone compatto) il card si
+          // adatta al contenuto senza eccezioni di layout.
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, color: Colors.white, size: 19),
@@ -231,6 +234,7 @@ class ClayButton extends StatelessWidget {
             // FittedBox: su schermi stretti (o con lingue dalle parole lunghe)
             // il testo si riduce invece di traboccare.
             Flexible(
+              fit: FlexFit.loose,
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
@@ -248,6 +252,9 @@ class ClayButton extends StatelessWidget {
         ),
       ),
     );
+
+    // Solo la larghezza: dentro una Row l'altezza non è vincolata.
+    return expanded ? SizedBox(width: double.infinity, child: button) : button;
   }
 }
 

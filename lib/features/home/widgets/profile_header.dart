@@ -1,23 +1,52 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/db/providers.dart';
 import '../../../core/design/clay.dart';
 import '../../../core/design/palette.dart';
 import '../../../core/design/theme.dart';
-import '../../../core/utils/text_guard.dart';
 import '../../../l10n/generated/app_localizations.dart';
-import '../home_mock_data.dart';
 
 /// Header della Home: card profilo con avatar, nome, dati anagrafici ed
 /// età biologica (chip accento con leggera "respirazione").
-class ProfileHeaderCard extends StatelessWidget {
+///
+/// I dati vengono dal profilo reale nel database (post-onboarding).
+class ProfileHeaderCard extends ConsumerStatefulWidget {
   const ProfileHeaderCard({super.key});
 
   @override
+  ConsumerState<ProfileHeaderCard> createState() => _ProfileHeaderCardState();
+}
+
+class _ProfileHeaderCardState extends ConsumerState<ProfileHeaderCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse =
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 1300))
+        ..repeat(reverse: true);
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final ref = this.ref;
     final l = AppLocalizations.of(context)!;
+    final profile = ref.watch(userProfileProvider);
+    final age = ref.watch(ageProvider);
+
+    final firstName = profile?.firstName ?? '';
+    final lastName = profile?.lastName ?? '';
     final initials =
-        '${HomeMockData.firstName[0]}${HomeMockData.lastName[0]}';
+        firstName.isNotEmpty && lastName.isNotEmpty
+            ? '${firstName[0]}${lastName[0]}'
+            : '·';
+
+    // TODO(M5): età biologica calcolata sui fattori reali (attività,
+    // composizione corporea, FC a riposo). Per ora = età anagrafica.
+    final bioAge = age ?? 0;
 
     return ClayCard(
       padding: const EdgeInsets.all(18),
@@ -46,7 +75,7 @@ class ProfileHeaderCard extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                guardFirstGlyph(initials),
+                initials,
                 style: baloo(size: 22, color: Colors.white),
               ),
             ),
@@ -56,13 +85,10 @@ class ProfileHeaderCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '${HomeMockData.firstName} ${HomeMockData.lastName}',
-                  style: baloo(size: 21),
-                ),
+                Text('$firstName $lastName', style: baloo(size: 21)),
                 const SizedBox(height: 2),
                 Text(
-                  guardFirstGlyph(l.dashboardSubtitle),
+                  l.dashboardSubtitle,
                   style: const TextStyle(
                     fontFamily: 'Nunito',
                     fontSize: 12,
@@ -75,22 +101,23 @@ class ProfileHeaderCard extends StatelessWidget {
                   spacing: 7,
                   runSpacing: 7,
                   children: [
-                    ClayChip(text: l.ageChip(HomeMockData.age)),
-                    ClayChip(text: l.heightChip(HomeMockData.heightCm)),
                     ClayChip(
-                      key: const ValueKey('bio-age-chip'),
-                      text: l.bioAgeChip(HomeMockData.bioAge),
-                      accent: true,
-                    )
-                        .animate(
-                          onPlay: (c) => c.repeat(reverse: true),
-                        )
-                        .scale(
-                          begin: const Offset(0.97, 0.97),
-                          end: const Offset(1.045, 1.045),
-                          duration: 1300.ms,
-                          curve: Curves.easeInOut,
-                        ),
+                      text: age != null ? l.ageChip(age) : '—',
+                    ),
+                    ClayChip(
+                      text:
+                          profile != null ? l.heightChip(profile.heightCm) : '—',
+                    ),
+                    ScaleTransition(
+                      scale: Tween(begin: 0.97, end: 1.045).animate(
+                        CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
+                      ),
+                      child: ClayChip(
+                        key: const ValueKey('bio-age-chip'),
+                        text: l.bioAgeChip(bioAge),
+                        accent: true,
+                      ),
+                    ),
                   ],
                 ),
               ],
