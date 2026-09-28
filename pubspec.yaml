@@ -74,6 +74,7 @@ flutter:
 
   assets:
     - assets/fonts/
+    - assets/data/
 
   fonts:
     # Istanze statiche di Nunito (non font variabile): su alcuni device il

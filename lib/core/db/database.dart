@@ -90,6 +90,10 @@ class AppDatabase extends _$AppDatabase {
     return row.read(count) ?? 0;
   }
 
+  /// Inserisce un cibo personalizzato e ne ritorna l'id.
+  Future<int> insertCustomFood(FoodItemsCompanion entry) =>
+      into(foodItems).insert(entry);
+
   // ---- Diario ----
 
   Future<void> addMealEntry(MealEntriesCompanion entry) =>

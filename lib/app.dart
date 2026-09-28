@@ -33,13 +33,19 @@ class ProfileGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final init = ref.watch(appInitProvider);
     final profileAsync = ref.watch(profileProvider);
 
-    return profileAsync.when(
+    return init.when(
       loading: () => const _Splash(),
       error: (_, _) => const _Splash(),
-      data: (profile) =>
-          profile == null ? const OnboardingFlow() : const AppShell(),
+      data: (_) =>
+          profileAsync.when(
+            loading: () => const _Splash(),
+            error: (_, _) => const _Splash(),
+            data: (profile) =>
+                profile == null ? const OnboardingFlow() : const AppShell(),
+          ),
     );
   }
 }

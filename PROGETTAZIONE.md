@@ -281,7 +281,7 @@ Stile visivo **claymorphism** (scelta utente): superfici "plastilina" con angoli
 | # | Milestone | Contenuto |
 |---|---|---|
 | M0 | Skeleton | Progetto Flutter, tema, navigazione, onboarding/profilo, DB |
-| M1 | Calorie | Catalogo seed, diario, obiettivo kcal, budget giornaliero |
+| M1 | Calorie | Catalogo seed CREA (~200 generici), diario, obiettivo kcal, cibi custom |
 | M2 | Peso Forma | Rilevazioni, grafici, foto, BMI |
 | M3 | Allenamento | Catalogo esercizi, routine, player sessione, storico |
 | M4 | Mappa corpo | SVG regioni + colorazione + dettaglio gruppo |
@@ -289,5 +289,6 @@ Stile visivo **claymorphism** (scelta utente): superfici "plastilina" con angoli
 | M6 | AI | Reti, training on-device, card previsioni, cold start |
 | M7 | Età biologica + Home finale | Formula, dashboard completa |
 | M8 | Rilascio | Polish, test, esportazione dati, build release |
+| M9 | Open Food Facts (futuro) | Ricerca prodotti da supermercato online + scanner codice a barre con cache locale (deciso con l'utente: CREA + custom per ora, OFF più avanti) |
 
 Ogni milestone produce un APK verificabile.

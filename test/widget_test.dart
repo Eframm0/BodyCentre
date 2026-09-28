@@ -28,6 +28,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          appInitProvider.overrideWith((ref) async {}),
           profileProvider.overrideWith((ref) => Stream.value(_testProfile())),
         ],
         child: const BodyCentreApp(),
@@ -50,7 +51,10 @@ void main() {
   ) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [profileProvider.overrideWith((ref) => Stream.value(null))],
+        overrides: [
+          appInitProvider.overrideWith((ref) async {}),
+          profileProvider.overrideWith((ref) => Stream.value(null)),
+        ],
         child: const BodyCentreApp(),
       ),
     );
@@ -60,5 +64,43 @@ void main() {
     // protetto da ZWSP anteposto, vedi text_guard.dart).
     expect(find.textContaining('Benvenuto in BodyCentre'), findsOneWidget);
     expect(find.textContaining('Chi sei?'), findsOneWidget);
+  });
+
+  testWidgets('La sezione Calorie mostra piatto, fuoco e diario', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appInitProvider.overrideWith((ref) async {}),
+          profileProvider.overrideWith((ref) => Stream.value(_testProfile())),
+          dayEntriesProvider.overrideWith((ref, day) => Stream.value([])),
+        ],
+        child: const BodyCentreApp(),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 2000));
+
+    // Naviga alla sezione Calorie dalla nav rail.
+    await tester.tap(find.byTooltip('Calorie'));
+    await tester.pump(const Duration(milliseconds: 2600));
+
+    expect(find.byKey(const ValueKey('macro-plate-card')), findsOneWidget);
+    // La ListView è lazy: fuoco e diario sono sotto la piega, serve scorrere.
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('fire-card')),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pump(const Duration(milliseconds: 800));
+    expect(find.byKey(const ValueKey('fire-card')), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('diary-card')),
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pump(const Duration(milliseconds: 800));
+    expect(find.byKey(const ValueKey('diary-card')), findsOneWidget);
   });
 }
