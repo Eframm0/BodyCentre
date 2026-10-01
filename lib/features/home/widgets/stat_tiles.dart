@@ -39,31 +39,39 @@ class StatTilesRow extends ConsumerWidget {
                 children: [
                   // Etichetta: icona prima del testo + Baloo2 (pattern
                   // immune al bug del primo glifo) + guardia ZWSP.
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.scale_rounded,
-                        size: 20,
-                        color: ClayPalette.accentDark,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        guardFirstGlyph(l.weightTile.toUpperCase()),
-                        style: baloo(
-                          size: 13,
-                          weight: FontWeight.w700,
-                          color: ClayPalette.textSoft,
+                  // Indentata a destra: primo elemento al bordo sinistro
+                  // (taglio del renderer del device).
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.scale_rounded,
+                          size: 20,
+                          color: ClayPalette.accentDark,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 6),
+                        Text(
+                          guardFirstGlyph(l.weightTile.toUpperCase()),
+                          style: baloo(
+                            size: 13,
+                            weight: FontWeight.w700,
+                            color: ClayPalette.textSoft,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 3),
-                  Text(
-                    profile == null
-                        ? '—'
-                        : formatKg(profile.currentWeightKg),
-                    style: baloo(size: 25),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Text(
+                      profile == null
+                          ? '—'
+                          : formatKg(profile.currentWeightKg),
+                      style: baloo(size: 25),
+                    ),
                   ),
                   // La variazione 30 giorni arriverà con lo storico del
                   // Peso forma (M2): per ora si mostra il peso del profilo.
