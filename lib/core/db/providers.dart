@@ -15,12 +15,23 @@ final databaseProvider = Provider<AppDatabase>((ref) {
   return db;
 });
 
-/// Inizializzazione one-shot: import del catalogo alimenti alla prima
-/// apertura. La UI aspetta questo provider prima di entrare.
+/// Inizializzazione one-shot: import del catalogo alimenti e punti di
+/// misura predefiniti alla prima apertura.
 final appInitProvider = FutureProvider<void>((ref) async {
   final db = ref.watch(databaseProvider);
   await seedFoodsIfEmpty(db);
+  await db.ensureDefaultPoints();
 });
+
+/// Rilevazioni del Peso forma, dalla più recente.
+final weightEntriesProvider = StreamProvider<List<WeightEntry>>((ref) {
+  return ref.watch(databaseProvider).watchWeightEntries();
+});
+
+/// Ultima rilevazione (null se mai registrata).
+final lastWeightEntryProvider = Provider<WeightEntry?>(
+  (ref) => ref.watch(weightEntriesProvider).value?.firstOrNull,
+);
 
 /// Profilo utente: null finché l'onboarding non è completato.
 final profileProvider = StreamProvider<UserProfile?>((ref) {

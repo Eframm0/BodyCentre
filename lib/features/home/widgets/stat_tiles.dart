@@ -20,6 +20,20 @@ class StatTilesRow extends ConsumerWidget {
     final profile = ref.watch(userProfileProvider);
     final kcalTarget = ref.watch(dailyKcalTargetProvider);
 
+    // Peso: ultima rilevazione reale (o peso del profilo) + delta 30gg.
+    final wEntries = ref.watch(weightEntriesProvider).value ?? [];
+    final currentWeight = wEntries.isNotEmpty ? wEntries.first.weightKg : profile?.currentWeightKg;
+    double? delta30;
+    if (wEntries.length >= 2) {
+      final newest = wEntries.first;
+      final cutoff = newest.entryDateTime.subtract(const Duration(days: 30));
+      final reference = wEntries.lastWhere(
+        (e) => !e.entryDateTime.isBefore(cutoff),
+        orElse: () => wEntries.last,
+      );
+      delta30 = newest.weightKg - reference.weightKg;
+    }
+
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final entries = ref.watch(dayEntriesProvider(today)).value ?? [];
@@ -67,14 +81,38 @@ class StatTilesRow extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.only(left: 8),
                     child: Text(
-                      profile == null
-                          ? '—'
-                          : formatKg(profile.currentWeightKg),
+                      currentWeight == null ? '—' : formatKg(currentWeight),
                       style: baloo(size: 25),
                     ),
                   ),
-                  // La variazione 30 giorni arriverà con lo storico del
-                  // Peso forma (M2): per ora si mostra il peso del profilo.
+                  if (delta30 != null) ...[
+                    const SizedBox(height: 3),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            delta30 <= 0
+                                ? Icons.trending_down_rounded
+                                : Icons.trending_up_rounded,
+                            size: 16,
+                            color: ClayPalette.accentDark,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            guardFirstGlyph(l.weightDelta(formatDelta(delta30))),
+                            style: const TextStyle(
+                              fontFamily: 'Nunito',
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: ClayPalette.accentDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

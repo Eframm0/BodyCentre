@@ -47,12 +47,64 @@ class MealEntries extends Table {
   RealColumn get fat => real()();
 }
 
-@DriftDatabase(tables: [UserProfiles, FoodItems, MealEntries])
+/// Rilevazione del Peso forma: peso, composizione corporea e foto.
+class WeightEntries extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  DateTimeColumn get entryDateTime => dateTime()();
+  RealColumn get weightKg => real()();
+
+  /// Composizione corporea (se nota): percentuali.
+  RealColumn get fatPct => real().nullable()();
+  RealColumn get musclePct => real().nullable()();
+
+  /// Percorsi locali della foto (documents dir dell'app).
+  TextColumn get photoPath => text().nullable()();
+  TextColumn get note => text().nullable()();
+}
+
+/// Punti di misura delle circonferenze: predefiniti (vita, petto,
+/// bicipiti) e personalizzati creati dall'utente.
+class MeasurementPoints extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  /// 'waist' | 'chest' | 'bicep_l' | 'bicep_r' | ``'custom:<nome>'``
+  TextColumn get key => text()();
+  TextColumn get label => text()();
+  BoolColumn get isCustom => boolean().withDefault(const Constant(false))();
+}
+
+/// Circonferenza misurata in una rilevazione. Le coordinate della freccia
+/// (0..1 relative alla foto) si salvano per ridisegnarle sulla foto.
+class WeightMeasurements extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get weightEntryId => integer().references(WeightEntries, #id)();
+  IntColumn get pointId => integer().references(MeasurementPoints, #id)();
+  RealColumn get valueCm => real()();
+  RealColumn get arrowX => real().withDefault(const Constant(0.5))();
+  RealColumn get arrowY => real().withDefault(const Constant(0.5))();
+  RealColumn get arrowAngle => real().withDefault(const Constant(0))();
+}
+
+@DriftDatabase(
+  tables: [UserProfiles, FoodItems, MealEntries, WeightEntries, MeasurementPoints, WeightMeasurements],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (m) => m.createAll(),
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(weightEntries);
+        await m.createTable(measurementPoints);
+        await m.createTable(weightMeasurements);
+      }
+    },
+  );
 
   // ---- Profilo ----
 
@@ -140,4 +192,100 @@ class AppDatabase extends _$AppDatabase {
         byDate[start.add(Duration(days: i))] ?? 0,
     ];
   }
+
+  // ---- Peso forma ----
+
+  /// Tutte le rilevazioni, dalla più recente.
+  Stream<List<WeightEntry>> watchWeightEntries() {
+    final query =
+        select(weightEntries)..orderBy([(w) => OrderingTerm.desc(w.entryDateTime)]);
+    return query.watch();
+  }
+
+  Future<WeightEntry?> getLastWeightEntry() {
+    final query =
+        select(weightEntries)..orderBy([(w) => OrderingTerm.desc(w.entryDateTime)])..limit(1);
+    return query.getSingleOrNull();
+  }
+
+  Future<void> deleteWeightEntry(int id) =>
+      (delete(weightEntries)..where((w) => w.id.equals(id))).go();
+
+  /// Salva una rilevazione con le sue circonferenze in un'unica transazione.
+  Future<void> saveWeightEntry(
+    WeightEntriesCompanion entry,
+    List<(int pointId, double cm, double x, double y, double angle)> measurements,
+  ) async {
+    await transaction(() async {
+      final id = await into(weightEntries).insert(entry);
+      await batch((b) {
+        b.insertAll(
+          weightMeasurements,
+          [
+            for (final m in measurements)
+              WeightMeasurementsCompanion.insert(
+                weightEntryId: id,
+                pointId: m.$1,
+                valueCm: m.$2,
+                arrowX: Value(m.$3),
+                arrowY: Value(m.$4),
+                arrowAngle: Value(m.$5),
+              ),
+          ],
+        );
+      });
+    });
+  }
+
+  /// Misure di una rilevazione, join con i punti (label inclusa).
+  Future<List<(WeightMeasurement, String)>> getMeasurements(int entryId) async {
+    final query =
+        select(weightMeasurements).join([
+          innerJoin(
+            measurementPoints,
+            measurementPoints.id.equalsExp(weightMeasurements.pointId),
+          ),
+        ])
+          ..where(weightMeasurements.weightEntryId.equals(entryId));
+    final rows = await query.get();
+    return [
+      for (final r in rows)
+        (r.readTable(weightMeasurements), r.readTable(measurementPoints).label),
+    ];
+  }
+
+  /// Misure dell'ultima rilevazione con foto (per la card con le frecce).
+  Future<List<(WeightMeasurement, String)>> getMeasurementsForEntry(int entryId) =>
+      getMeasurements(entryId);
+
+  /// Punti di misura: default creati al primo utilizzo + custom.
+  Future<List<MeasurementPoint>> getAllPoints() =>
+      (select(measurementPoints)..orderBy([(p) => OrderingTerm.asc(p.id)])).get();
+
+  Future<int> ensureDefaultPoints() async {
+    final defaults = [
+      ('waist', 'Vita'),
+      ('chest', 'Petto'),
+      ('bicep_l', 'Bicipite sx'),
+      ('bicep_r', 'Bicipite dx'),
+    ];
+    var maxId = 0;
+    for (final (key, label) in defaults) {
+      final existing =
+          await (select(measurementPoints)..where((p) => p.key.equals(key)))
+              .getSingleOrNull();
+      if (existing == null) {
+        maxId = await into(measurementPoints).insert(
+          MeasurementPointsCompanion.insert(key: key, label: label),
+        );
+      } else {
+        maxId = maxId < existing.id ? existing.id : maxId;
+      }
+    }
+    return maxId;
+  }
+
+  Future<int> addCustomPoint(String label) => into(measurementPoints).insert(
+    MeasurementPointsCompanion.insert(key: 'custom:$label', label: label, isCustom: const Value(true)),
+  );
 }
