@@ -1,24 +1,36 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/db/providers.dart';
 import '../../../core/design/clay.dart';
 import '../../../core/design/palette.dart';
 import '../../../core/utils/text_guard.dart';
 import '../../../l10n/generated/app_localizations.dart';
-import '../home_mock_data.dart';
 
-/// Card "Calorie · ultimi 7 giorni": barre assunte vs bruciate.
-class CaloriesWeekCard extends StatelessWidget {
+/// Card "Calorie · ultimi 7 giorni": barre assunte (diario reale) vs
+/// bruciate (dati reali da M5).
+class CaloriesWeekCard extends ConsumerWidget {
   const CaloriesWeekCard({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l = AppLocalizations.of(context)!;
     final letters = l.weekdayLetters;
     final days = [
       for (var i = 6; i >= 0; i--)
         DateTime.now().subtract(Duration(days: i)),
     ];
+
+    // Kcal assunte reali (ultimo elemento = oggi); bruciate da provider.
+    final intake = ref.watch(weekIntakeProvider).value ?? List.filled(7, 0.0);
+    final burnedKcal = ref.watch(burnedKcalProvider).toDouble();
+    final burned = List.filled(7, burnedKcal);
+    final maxY = [
+      2000.0,
+      ...intake,
+      ...burned,
+    ].reduce((a, b) => a > b ? a : b) * 1.15;
 
     return ClayCard(
       key: const ValueKey('calories-week-card'),
@@ -56,7 +68,7 @@ class CaloriesWeekCard extends StatelessWidget {
               duration: const Duration(milliseconds: 700),
               curve: Curves.easeOutCubic,
               BarChartData(
-                maxY: 3000,
+                maxY: maxY,
                 alignment: BarChartAlignment.spaceAround,
                 gridData: const FlGridData(show: false),
                 borderData: FlBorderData(show: false),
@@ -101,13 +113,13 @@ class CaloriesWeekCard extends StatelessWidget {
                       barsSpace: 3,
                       barRods: [
                         BarChartRodData(
-                          toY: HomeMockData.weekIntake[i].toDouble(),
+                          toY: intake[i],
                           color: ClayPalette.amber,
                           width: 6.5,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         BarChartRodData(
-                          toY: HomeMockData.weekBurned[i].toDouble(),
+                          toY: burned[i],
                           color: ClayPalette.accent,
                           width: 6.5,
                           borderRadius: BorderRadius.circular(4),

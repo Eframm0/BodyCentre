@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -82,6 +83,23 @@ final dayEntriesProvider =
 /// Kcal bruciate nel giorno (passi + allenamenti).
 /// TODO(M5): alimentato da Health Connect / pedometro.
 final burnedKcalProvider = Provider<int>((ref) => 0);
+
+/// Conteggio voci del diario: cambia a ogni inserimento/eliminazione e
+/// fa da "versione" per ricalcolare i totali della settimana.
+final mealCountProvider = StreamProvider<int>((ref) {
+  final db = ref.watch(databaseProvider);
+  final count = db.mealEntries.id.count();
+  return (db.selectOnly(db.mealEntries)..addColumns([count]))
+      .watch()
+      .map((rows) => rows.first.read(count) ?? 0);
+});
+
+/// Kcal assunte per ciascuno degli ultimi 7 giorni (dal diario reale).
+final weekIntakeProvider = FutureProvider<List<double>>((ref) async {
+  ref.watch(mealCountProvider);
+  final db = ref.watch(databaseProvider);
+  return db.dailyKcalLastDays(7);
+});
 
 /// Totali del giorno a partire dalle voci del diario.
 class DayTotals {

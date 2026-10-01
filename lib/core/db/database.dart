@@ -112,4 +112,32 @@ class AppDatabase extends _$AppDatabase {
           ..orderBy([(e) => OrderingTerm.asc(e.entryDateTime)]);
     return query.watch();
   }
+
+  /// Kcal totali per ciascuno degli ultimi `days` giorni (incluso oggi),
+  /// dalla più vecchia alla più recente.
+  Future<List<double>> dailyKcalLastDays(int days) async {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: days - 1));
+    final end = start.add(Duration(days: days));
+    final y = mealEntries.entryDateTime.year;
+    final m = mealEntries.entryDateTime.month;
+    final d = mealEntries.entryDateTime.day;
+    final kcalSum = mealEntries.kcal.sum();
+    final rows =
+        await (
+          selectOnly(mealEntries)
+            ..addColumns([y, m, d, kcalSum])
+            ..where(mealEntries.entryDateTime.isBetweenValues(start, end))
+            ..groupBy([y, m, d])
+        ).get();
+    final byDate = <DateTime, double>{
+      for (final r in rows)
+        DateTime(r.read(y)!, r.read(m)!, r.read(d)!): (r.read(kcalSum) ?? 0).toDouble(),
+    };
+    return [
+      for (var i = 0; i < days; i++)
+        byDate[start.add(Duration(days: i))] ?? 0,
+    ];
+  }
 }
