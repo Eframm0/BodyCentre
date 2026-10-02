@@ -72,7 +72,7 @@ class BodyCompositionCard extends ConsumerWidget {
             LayoutBuilder(
               builder: (context, constraints) {
                 final w = constraints.maxWidth;
-                final h = w * 0.40;
+                final h = w * 0.34;
                 return TweenAnimationBuilder<double>(
                   tween: Tween(begin: 0, end: 1),
                   duration: const Duration(milliseconds: 650),
@@ -134,139 +134,151 @@ class _TissuePainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    // ---- Rettangolo tessuti (compatto, a sinistra) ----
-    final rectW = w * 0.40;
-    final rectH = h * 0.92;
-    final rectLeft = 2.0;
-    final rectTop = (h - rectH) / 2;
-    final r = rectW * 0.16;
-    final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(rectLeft, rectTop, rectW, rectH),
-      Radius.circular(r),
-    );
+    // ---- Blocco muscolare: ~2x piu' largo che alto, 3 bande ondulate ----
+    // Centro il blocco nell'area a sinistra delle barre (barX0 = w*0.52).
+    final mLeft = (w * 0.50 - w * 0.34) / 2;
+    final mTop = h * 0.39;
+    final mW = w * 0.34;
+    final mH = h * 0.42;
+    final mRect = Rect.fromLTWH(mLeft, mTop, mW, mH);
+    final mR = mW * 0.10;
 
     canvas.drawRRect(
-      rect.shift(const Offset(1.5, 2)),
+      RRect.fromRectAndRadius(mRect, Radius.circular(mR))
+          .shift(const Offset(1.5, 2)),
       Paint()..color = const Color(0x224A6070),
     );
-    canvas.drawRRect(rect, Paint()..color = const Color(0xFFF2C9A0));
 
-    // Composizione relativa grasso/muscolo (min 15% per leggibilità).
-    final total = fatPct + musclePct;
-    final fatShare = total <= 0 ? 0.45 : (fatPct / total).clamp(0.15, 0.85);
-
-    final skinPad = rectW * 0.075;
-    final inner = Rect.fromLTWH(
-      rect.left + skinPad,
-      rect.top + skinPad,
-      rect.width - skinPad * 2,
-      rect.height - skinPad * 2,
-    );
-    final innerR = RRect.fromRectAndRadius(inner, Radius.circular(r * 0.7));
-
-    canvas.save();
-    canvas.clipRRect(innerR);
-    canvas.drawRect(inner, Paint()..color = _muscleDark);
-
-    // Grasso sopra: banda con adipociti.
-    final fatBandH = inner.height * fatShare;
-    final fatRect = Rect.fromLTWH(inner.left, inner.top, inner.width, fatBandH);
-    canvas.drawRect(fatRect, Paint()..color = const Color(0xFFEFD083));
-    final cellR = (fatBandH / 3.2).clamp(rectW * 0.055, rectW * 0.11);
-    var row = 0;
-    for (var cy = fatRect.top + cellR * 1.1;
-        cy < fatRect.bottom - cellR * 0.5;
-        cy += cellR * 2.0, row++) {
-      final off = row.isEven ? 0.0 : cellR;
-      for (var cx = fatRect.left + cellR * 1.1 + off;
-          cx < fatRect.right - cellR * 0.5;
-          cx += cellR * 2.0) {
-        final c = Offset(cx, cy);
-        canvas.drawCircle(c, cellR, Paint()..color = const Color(0xFFF6DC9B));
-        canvas.drawCircle(
-          c,
-          cellR,
+    final bands = 3;
+    final bandH = mH / bands;
+    // Le bande seguono separatori ondulati: le disegno come rettangoli
+    // sfalsati che si sovrappongono leggermente.
+    for (var b = 0; b < bands; b++) {
+      final top = mRect.top + b * bandH;
+      final color =
+          b.isEven ? _muscleColor : _muscleDark;
+      final path = Path()..moveTo(mLeft, top);
+      // Separatore ondulato (tratteggio a onde) sul confine superiore.
+      const segments = 9;
+      for (var i = 0; i <= segments; i++) {
+        final x = mLeft + mW * i / segments;
+        final y = top + (i.isEven ? 0 : bandH * 0.14) - (b == 0 ? 0 : bandH * 0.07);
+        path.lineTo(x, y);
+      }
+      path.lineTo(mLeft + mW, top + bandH + bandH * 0.14);
+      path.lineTo(mLeft, top + bandH + bandH * 0.14);
+      path.close();
+      canvas.save();
+      canvas.clipRRect(RRect.fromRectAndRadius(mRect, Radius.circular(mR)));
+      canvas.drawPath(path, Paint()..color = color);
+      // Trattini curvi delle fibre (archetti ripetuti in ogni banda).
+      final hook =
           Paint()
             ..style = PaintingStyle.stroke
-            ..strokeWidth = 1.0
-            ..color = _fatDark,
-        );
-        canvas.drawCircle(
-          c.translate(-cellR * 0.25, -cellR * 0.25),
-          cellR * 0.42,
-          Paint()..color = const Color(0xFFFAE9C0),
-        );
-      }
-    }
-
-    // Muscolo sotto: fibre orizzontali.
-    final mRect = Rect.fromLTWH(
-      inner.left,
-      inner.top + fatBandH,
-      inner.width,
-      inner.height - fatBandH,
-    );
-    final fiberH = (mRect.height / 3.1).clamp(rectW * 0.07, rectW * 0.14);
-    var fy = mRect.top + fiberH * 0.3;
-    var idx = 0;
-    while (fy < mRect.bottom - fiberH * 0.3) {
-      final capped = fy + fiberH > mRect.bottom;
-      final fh = capped ? mRect.bottom - fy : fiberH;
-      if (fh > fiberH * 0.35) {
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(
-            Rect.fromLTWH(mRect.left - 2, fy, mRect.width + 4, fh),
-            Radius.circular(fh * 0.5),
-          ),
-          Paint()..color = idx.isEven ? _muscleColor : _muscleDark,
-        );
-        canvas.drawLine(
-          Offset(mRect.left + 2, fy + fh * 0.30),
-          Offset(mRect.right - 2, fy + fh * 0.30),
-          Paint()
-            ..strokeWidth = fh * 0.16
+            ..strokeWidth = 1.4
             ..strokeCap = StrokeCap.round
-            ..color = const Color(0xFFE08A7E),
-        );
+            ..color = b.isEven ? _muscleDark : _muscleColor;
+      final hookW = mW / 8;
+      for (var hx = mLeft + hookW * 0.6; hx < mRect.right - hookW * 0.4; hx += hookW) {
+        for (var hy = top + bandH * 0.28;
+            hy < top + bandH * 0.92;
+            hy += bandH * 0.42) {
+          final arcRect = Rect.fromCenter(
+            center: Offset(hx + hookW * 0.25, hy),
+            width: hookW * 0.55,
+            height: bandH * 0.34,
+          );
+          canvas.drawArc(arcRect, 3.14159, 3.14159, false, hook);
+        }
       }
-      fy += fiberH * 1.12;
-      idx++;
+      canvas.restore();
     }
-    canvas.restore();
-
-    // Contorno pelle
+    // Contorno del blocco
     canvas.drawRRect(
-      rect,
+      RRect.fromRectAndRadius(mRect, Radius.circular(mR)),
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = rectW * 0.045
-        ..color = const Color(0xFFD8A25E),
+        ..strokeWidth = 1.6
+        ..color = _muscleDark,
     );
 
-    // ---- Barre a destra (etichetta + valore + barra) ----
+    // ---- Grasso: nido d'ape fitto di adipociti sopra il muscolo ----
+    // Cellette piccole SCHIACCATE l'una contro l'altra (impacchettamento
+    // esagonale): la dimensione cresce comunque con la % di grasso.
+    final cellScale = 0.55 + (fatPct / 100) * 0.9;
+    final r = mW * 0.054 * cellScale;
+    final dx = r * 1.86; // passo orizzontale: le celle si toccano
+    final dy = r * 1.52; // passo verticale: file sovrapposte
+
+    // Il nido d'ape copre TUTTA la larghezza del muscolo, file sfalsate.
+    final baseCy = mTop - r * 0.80;
+    final rowDefs = <double>[-3 * dy / 2, -dy, -dy / 2, 0.0];
+    for (final (rowIdx, cyOff) in rowDefs.indexed) {
+      final xOff = rowIdx.isOdd ? dx / 2 : 0.0;
+      final startX = mLeft + r * 0.9 + xOff;
+      for (var x = startX; x + r * 0.9 < mRect.right; x += dx) {
+        _drawFatCell(canvas, Offset(x, baseCy + cyOff), r);
+      }
+    }
+
+    // ---- Barre a destra ----
     final barX0 = w * 0.52;
     final barX1 = w - 4;
     const barH = 9.0;
-    final center1 = h * 0.30;
-    final center2 = h * 0.72;
+    final center1 = h * 0.28;
+    final center2 = h * 0.74;
 
     _drawBar(canvas, fatLabel, fatValue, center1, barX0, barX1, barH,
         _fatDark, fatPct / 50, t);
     _drawBar(canvas, muscleLabel, muscleValue, center2, barX0, barX1, barH,
         _muscleDark, musclePct / 60, t);
 
-    // ---- Indicatori: banda -> barra, allineati per costruzione ----
-    _connector(
-      canvas,
-      Offset(rect.right - rectW * 0.16, fatRect.center.dy),
-      Offset(barX0 - 5, center1 + 4 + barH / 2),
-      _fatDark,
+    // ---- Collegamenti A GOMITO (come nello schema utente) ----
+    // Grasso: dall'ammasso sale, corre a destra e scende sulla barra.
+    final fatFrom = Offset(mLeft + mW * 0.92, baseCy - 3 * dy / 2 - r * 0.5);
+    final fatTo = Offset(barX0 - 6, center1 + 4 + barH / 2);
+    _elbow(canvas, fatFrom, fatTo, -1, _fatDark);
+    // Muscolo: dal bordo destro del blocco, orizzontale fino alla barra.
+    final muscleFrom = Offset(mRect.right + 2, mRect.center.dy);
+    final muscleTo = Offset(barX0 - 6, center2 + 4 + barH / 2);
+    _elbow(canvas, muscleFrom, muscleTo, 1, _muscleDark);
+  }
+
+  /// Collegamento a gomito: parte orizzontale breve nella direzione
+  /// [dir], poi verticale all'altezza dell'arrivo, poi orizzontale.
+  void _elbow(Canvas canvas, Offset from, Offset to, int dir, Color color) {
+    final midX = from.dx + (to.dx - from.dx) * (dir < 0 ? 0.35 : 0.72);
+    final path =
+        Path()
+          ..moveTo(from.dx, from.dy)
+          ..lineTo(midX, from.dy)
+          ..lineTo(midX, to.dy)
+          ..lineTo(to.dx, to.dy);
+    final paint =
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.8
+          ..strokeCap = StrokeCap.round
+          ..color = color.withValues(alpha: 0.8);
+    canvas.drawPath(path, paint);
+    canvas.drawCircle(from, 2.8, Paint()..color = color);
+    canvas.drawCircle(to, 3.0, Paint()..color = color);
+  }
+
+  void _drawFatCell(Canvas canvas, Offset c, double r) {
+    canvas.drawCircle(c, r, Paint()..color = const Color(0xFFEFD083));
+    canvas.drawCircle(
+      c,
+      r,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0
+        ..color = _fatDark,
     );
-    _connector(
-      canvas,
-      Offset(rect.right - rectW * 0.16, mRect.center.dy),
-      Offset(barX0 - 5, center2 + 4 + barH / 2),
-      _muscleDark,
+    canvas.drawCircle(
+      c.translate(-r * 0.25, -r * 0.25),
+      r * 0.40,
+      Paint()..color = const Color(0xFFFAE9C0),
     );
   }
 
@@ -327,23 +339,6 @@ class _TissuePainter extends CustomPainter {
       textDirection: TextDirection.ltr,
     )..layout();
     tp.paint(canvas, alignLeft ? at : at - Offset(tp.width, 0));
-  }
-
-  void _connector(Canvas canvas, Offset from, Offset to, Color color) {
-    final mid = Offset((from.dx + to.dx) / 2, from.dy);
-    final path =
-        Path()
-          ..moveTo(from.dx, from.dy)
-          ..quadraticBezierTo(mid.dx, from.dy, to.dx, to.dy);
-    canvas.drawPath(
-      path,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.8
-        ..color = color.withValues(alpha: 0.8),
-    );
-    canvas.drawCircle(from, 2.8, Paint()..color = color);
-    canvas.drawCircle(to, 3.0, Paint()..color = color);
   }
 
   @override
