@@ -154,6 +154,7 @@
   "shotGuideOk": "Ok, scatta",
   "poseNotFound": "Corpo non rilevato: trascina le frecce a mano",
   "detecting": "Analisi della foto…",
+  "trendMeasuresTitle": "Trend circonferenze",
   "deleteMeasureConfirm": "Eliminare questa misura?",
   "delete": "Elimina"
 }

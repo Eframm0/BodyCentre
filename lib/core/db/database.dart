@@ -91,9 +91,16 @@ class WeightMeasurements extends Table {
   RealColumn get arrowY2 => real().nullable()();
 }
 
+/// Serie storica di una circonferenza (per il trend).
+class MeasureSeries {
+  MeasureSeries(this.label);
+
+  final String label;
+  final List<(DateTime, double)> values = [];
+}
+
 /// Misura da salvare con posizione e (opzionali) estremi della linea.
-class MeasureToSave {
-  const MeasureToSave(
+class MeasureToSave {  const MeasureToSave(
     this.pointId,
     this.cm,
     this.x,
@@ -313,6 +320,43 @@ class AppDatabase extends _$AppDatabase {
             ..where((p) => p.id.equals(pointId)))
           .go();
     });
+  }
+
+  /// Serie storiche delle circonferenze per punto (ordine cronologico),
+  /// per il grafico di tendenza. Solo punti con almeno una misura.
+  Future<List<MeasureSeries>> getMeasurementSeries() async {
+    final query =
+        select(weightMeasurements).join([
+          innerJoin(
+            measurementPoints,
+            measurementPoints.id.equalsExp(weightMeasurements.pointId),
+          ),
+          innerJoin(
+            weightEntries,
+            weightEntries.id.equalsExp(weightMeasurements.weightEntryId),
+          ),
+        ])
+          ..orderBy([
+            OrderingTerm.asc(weightEntries.entryDateTime),
+          ]);
+    final rows = await query.get();
+    final byPoint = <int, MeasureSeries>{};
+    for (final r in rows) {
+      final point = r.readTable(measurementPoints);
+      final entry = r.readTable(weightEntries);
+      final m = r.readTable(weightMeasurements);
+      byPoint
+          .putIfAbsent(point.id, () => MeasureSeries(point.label))
+          .values
+          .add((entry.entryDateTime, m.valueCm));
+    }
+    // Prima i punti con più dati (più significativi), poi per nome.
+    final list = byPoint.values.toList()
+      ..sort((a, b) {
+        final cmp = b.values.length.compareTo(a.values.length);
+        return cmp != 0 ? cmp : a.label.compareTo(b.label);
+      });
+    return list;
   }
 
   /// Elimina un punto di misura se non ha più misure collegate.

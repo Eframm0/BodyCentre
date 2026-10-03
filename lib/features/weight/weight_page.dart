@@ -12,6 +12,7 @@ import '../../l10n/generated/app_localizations.dart';
 import 'widgets/body_composition_card.dart';
 import 'widgets/new_weight_entry_sheet.dart';
 import 'widgets/photo_measure_card.dart';
+import 'widgets/trend_measures_card.dart';
 import 'widgets/weight_trend_card.dart';
 
 /// Sezione Peso forma: composizione corporea, ultima foto con misure,
@@ -60,6 +61,8 @@ class WeightPage extends ConsumerWidget {
         const BodyCompositionCard(),
         const SizedBox(height: 14),
         const PhotoMeasureCard(),
+        const SizedBox(height: 14),
+        const TrendMeasuresCard(),
         const SizedBox(height: 14),
         WeightTrendCard(entries: entries),
         const SizedBox(height: 14),
