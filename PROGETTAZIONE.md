@@ -278,17 +278,22 @@ Stile visivo **claymorphism** (scelta utente): superfici "plastilina" con angoli
 
 ## 13. Piano di sviluppo (milestone demoabili)
 
-| # | Milestone | Contenuto |
-|---|---|---|
-| M0 | Skeleton | Progetto Flutter, tema, navigazione, onboarding/profilo, DB |
-| M1 | Calorie | Catalogo seed CREA (~200 generici), diario, obiettivo kcal, cibi custom |
-| M2 | Peso Forma | Rilevazioni, grafici, foto, BMI |
-| M3 | Allenamento | Catalogo esercizi, routine, player sessione, storico |
-| M4 | Mappa corpo | SVG regioni + colorazione + dettaglio gruppo |
-| M5 | Health Connect | Permessi, sync passi/kcal/peso, fallback |
-| M6 | AI | Reti, training on-device, card previsioni, cold start |
-| M7 | Età biologica + Home finale | Formula, dashboard completa |
-| M8 | Rilascio | Polish, test, esportazione dati, build release |
-| M9 | Open Food Facts (futuro) | Ricerca prodotti da supermercato online + scanner codice a barre con cache locale (deciso con l'utente: CREA + custom per ora, OFF più avanti) |
+| # | Milestone | Contenuto | Stato |
+|---|---|---|---|
+| M0 | Skeleton | Progetto Flutter, tema claymorphism, navigazione, onboarding/profilo, DB | ✅ 2026-09-27 |
+| M1 | Calorie | Catalogo seed CREA (~200 generici), diario, obiettivo kcal, cibi custom, Home collegata | ✅ 2026-09-28 |
+| M2 | Peso Forma | Rilevazioni, composizione corporea illustrata, foto con ML Kit (linee, editor, punti custom), confronto prima/dopo, trend circonferenze, grafico peso | ✅ 2026-10-03 |
+| M3 | Allenamento | Catalogo esercizi, routine, player sessione, storico | ⏳ prossimo |
+| M4 | Mappa corpo | SVG regioni + colorazione + dettaglio gruppo | ⏳ |
+| M5 | Health Connect | Permessi, sync passi/kcal/peso, fallback | ⏳ |
+| M6 | AI | Reti, training on-device, card previsioni, cold start | ⏳ |
+| M7 | Età biologica + Home finale | Formula, dashboard completa | ⏳ |
+| M8 | Rilascio | Polish, test, esportazione dati, build release | ⏳ |
+| M9 | Open Food Facts (futuro) | Ricerca prodotti da supermercato online + scanner codice a barre con cache locale (deciso con l'utente: CREA + custom per ora, OFF più avanti) | ⏳ |
+
+Note di avanzamento (decisioni prese durante lo sviluppo):
+- Design claymorphism iterato con l'utente su sketch; palette "Menta & Azzurro".
+- Ottimizzazione prestazioni su device medio: pattern ValueNotifier per overlay (vedi memory).
+- Ogni task verificato sul telefono dell'utente (Xiaomi 2312DRA50G) prima del commit.
 
 Ogni milestone produce un APK verificabile.
