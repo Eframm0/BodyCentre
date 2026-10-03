@@ -83,6 +83,35 @@ class WeightMeasurements extends Table {
   RealColumn get arrowX => real().withDefault(const Constant(0.5))();
   RealColumn get arrowY => real().withDefault(const Constant(0.5))();
   RealColumn get arrowAngle => real().withDefault(const Constant(0))();
+
+  /// Estremi della linea di misura (null se non rilevati).
+  RealColumn get arrowX1 => real().nullable()();
+  RealColumn get arrowY1 => real().nullable()();
+  RealColumn get arrowX2 => real().nullable()();
+  RealColumn get arrowY2 => real().nullable()();
+}
+
+/// Misura da salvare con posizione e (opzionali) estremi della linea.
+class MeasureToSave {
+  const MeasureToSave(
+    this.pointId,
+    this.cm,
+    this.x,
+    this.y, {
+    this.x1,
+    this.y1,
+    this.x2,
+    this.y2,
+  });
+
+  final int pointId;
+  final double cm;
+  final double x;
+  final double y;
+  final double? x1;
+  final double? y1;
+  final double? x2;
+  final double? y2;
 }
 
 @DriftDatabase(
@@ -92,7 +121,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -102,6 +131,12 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(weightEntries);
         await m.createTable(measurementPoints);
         await m.createTable(weightMeasurements);
+      }
+      if (from < 3) {
+        await m.addColumn(weightMeasurements, weightMeasurements.arrowX1);
+        await m.addColumn(weightMeasurements, weightMeasurements.arrowY1);
+        await m.addColumn(weightMeasurements, weightMeasurements.arrowX2);
+        await m.addColumn(weightMeasurements, weightMeasurements.arrowY2);
       }
     },
   );
@@ -211,10 +246,14 @@ class AppDatabase extends _$AppDatabase {
   Future<void> deleteWeightEntry(int id) =>
       (delete(weightEntries)..where((w) => w.id.equals(id))).go();
 
+  /// Posizione di misura con estremi della linea (0..1 sulla foto).
+  /// Gli estremi sono null se non rilevabili.
+  static const emptyEnds = (null, null, null, null);
+
   /// Salva una rilevazione con le sue circonferenze in un'unica transazione.
   Future<void> saveWeightEntry(
     WeightEntriesCompanion entry,
-    List<(int pointId, double cm, double x, double y, double angle)> measurements,
+    List<MeasureToSave> measurements,
   ) async {
     await transaction(() async {
       final id = await into(weightEntries).insert(entry);
@@ -225,11 +264,14 @@ class AppDatabase extends _$AppDatabase {
             for (final m in measurements)
               WeightMeasurementsCompanion.insert(
                 weightEntryId: id,
-                pointId: m.$1,
-                valueCm: m.$2,
-                arrowX: Value(m.$3),
-                arrowY: Value(m.$4),
-                arrowAngle: Value(m.$5),
+                pointId: m.pointId,
+                valueCm: m.cm,
+                arrowX: Value(m.x),
+                arrowY: Value(m.y),
+                arrowX1: m.x1 == null ? const Value.absent() : Value(m.x1!),
+                arrowY1: m.y1 == null ? const Value.absent() : Value(m.y1!),
+                arrowX2: m.x2 == null ? const Value.absent() : Value(m.x2!),
+                arrowY2: m.y2 == null ? const Value.absent() : Value(m.y2!),
               ),
           ],
         );
@@ -237,8 +279,10 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
-  /// Misure di una rilevazione, join con i punti (label inclusa).
-  Future<List<(WeightMeasurement, String)>> getMeasurements(int entryId) async {
+  /// Misure di una rilevazione, join con i punti (label e key inclusi).
+  Future<List<(WeightMeasurement, MeasurementPoint)>> getMeasurements(
+    int entryId,
+  ) async {
     final query =
         select(weightMeasurements).join([
           innerJoin(
@@ -250,17 +294,98 @@ class AppDatabase extends _$AppDatabase {
     final rows = await query.get();
     return [
       for (final r in rows)
-        (r.readTable(weightMeasurements), r.readTable(measurementPoints).label),
+        (r.readTable(weightMeasurements), r.readTable(measurementPoints)),
     ];
   }
 
-  /// Misure dell'ultima rilevazione con foto (per la card con le frecce).
-  Future<List<(WeightMeasurement, String)>> getMeasurementsForEntry(int entryId) =>
-      getMeasurements(entryId);
+  /// Elimina una misura dalla foto.
+  Future<void> deleteMeasurement(int id) =>
+      (delete(weightMeasurements)..where((m) => m.id.equals(id))).go();
+
+  /// Elimina PERMANENTEMENTE un punto utente: tutte le sue misure
+  /// (in ogni rilevazione) e il punto stesso.
+  Future<void> deletePointCascade(int pointId) async {
+    await transaction(() async {
+      await (delete(weightMeasurements)
+            ..where((m) => m.pointId.equals(pointId)))
+          .go();
+      await (delete(measurementPoints)
+            ..where((p) => p.id.equals(pointId)))
+          .go();
+    });
+  }
+
+  /// Elimina un punto di misura se non ha più misure collegate.
+  Future<void> deletePointIfUnused(int pointId) async {
+    final count = weightMeasurements.id.count();
+    final row =
+        await (
+          selectOnly(weightMeasurements)
+            ..addColumns([count])
+            ..where(weightMeasurements.pointId.equals(pointId))
+        ).getSingle();
+    if ((row.read(count) ?? 0) == 0) {
+      await (delete(measurementPoints)
+            ..where((p) => p.id.equals(pointId)))
+          .go();
+    }
+  }
 
   /// Punti di misura: default creati al primo utilizzo + custom.
   Future<List<MeasurementPoint>> getAllPoints() =>
       (select(measurementPoints)..orderBy([(p) => OrderingTerm.asc(p.id)])).get();
+
+  /// Aggiorna la posizione della freccia/linea di una misura (coordinate
+  /// 0..1 relative alla foto) dopo il drag dell'utente.
+  Future<void> updateMeasurementArrow(
+    int measurementId,
+    double x,
+    double y, {
+    double? x1,
+    double? y1,
+    double? x2,
+    double? y2,
+  }) => (
+      update(weightMeasurements)
+        ..where((m) => m.id.equals(measurementId))
+    ).write(
+      WeightMeasurementsCompanion(
+        arrowX: Value(x),
+        arrowY: Value(y),
+        arrowX1: Value(x1),
+        arrowY1: Value(y1),
+        arrowX2: Value(x2),
+        arrowY2: Value(y2),
+      ),
+    );
+
+  /// Aggiunge una misura a una rilevazione esistente (nuovo punto toccato
+  /// sulla foto).
+  Future<void> addMeasurement(
+    int entryId,
+    int pointId,
+    double cm,
+    double x,
+    double y,
+  ) => into(weightMeasurements).insert(
+    WeightMeasurementsCompanion.insert(
+      weightEntryId: entryId,
+      pointId: pointId,
+      valueCm: cm,
+      arrowX: Value(x),
+      arrowY: Value(y),
+    ),
+  );
+
+  /// Prima rilevazione con foto (per il confronto prima/dopo).
+  Future<WeightEntry?> getFirstEntryWithPhoto() {
+    final query =
+        select(weightEntries)
+          ..where((w) => w.photoPath.isNotNull())
+          ..orderBy([(w) => OrderingTerm.asc(w.entryDateTime)])
+          ..limit(1);
+    return query.getSingleOrNull();
+  }
 
   Future<int> ensureDefaultPoints() async {
     final defaults = [

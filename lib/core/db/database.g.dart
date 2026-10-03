@@ -2383,7 +2383,7 @@ class MeasurementPoint extends DataClass
     implements Insertable<MeasurementPoint> {
   final int id;
 
-  /// 'waist' | 'chest' | 'bicep_l' | 'bicep_r' | 'custom:<nome>'
+  /// 'waist' | 'chest' | 'bicep_l' | 'bicep_r' | ``'custom:<nome>'``
   final String key;
   final String label;
   final bool isCustom;
@@ -2644,6 +2644,50 @@ class $WeightMeasurementsTable extends WeightMeasurements
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _arrowX1Meta = const VerificationMeta(
+    'arrowX1',
+  );
+  @override
+  late final GeneratedColumn<double> arrowX1 = GeneratedColumn<double>(
+    'arrow_x1',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _arrowY1Meta = const VerificationMeta(
+    'arrowY1',
+  );
+  @override
+  late final GeneratedColumn<double> arrowY1 = GeneratedColumn<double>(
+    'arrow_y1',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _arrowX2Meta = const VerificationMeta(
+    'arrowX2',
+  );
+  @override
+  late final GeneratedColumn<double> arrowX2 = GeneratedColumn<double>(
+    'arrow_x2',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _arrowY2Meta = const VerificationMeta(
+    'arrowY2',
+  );
+  @override
+  late final GeneratedColumn<double> arrowY2 = GeneratedColumn<double>(
+    'arrow_y2',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2653,6 +2697,10 @@ class $WeightMeasurementsTable extends WeightMeasurements
     arrowX,
     arrowY,
     arrowAngle,
+    arrowX1,
+    arrowY1,
+    arrowX2,
+    arrowY2,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2714,6 +2762,30 @@ class $WeightMeasurementsTable extends WeightMeasurements
         arrowAngle.isAcceptableOrUnknown(data['arrow_angle']!, _arrowAngleMeta),
       );
     }
+    if (data.containsKey('arrow_x1')) {
+      context.handle(
+        _arrowX1Meta,
+        arrowX1.isAcceptableOrUnknown(data['arrow_x1']!, _arrowX1Meta),
+      );
+    }
+    if (data.containsKey('arrow_y1')) {
+      context.handle(
+        _arrowY1Meta,
+        arrowY1.isAcceptableOrUnknown(data['arrow_y1']!, _arrowY1Meta),
+      );
+    }
+    if (data.containsKey('arrow_x2')) {
+      context.handle(
+        _arrowX2Meta,
+        arrowX2.isAcceptableOrUnknown(data['arrow_x2']!, _arrowX2Meta),
+      );
+    }
+    if (data.containsKey('arrow_y2')) {
+      context.handle(
+        _arrowY2Meta,
+        arrowY2.isAcceptableOrUnknown(data['arrow_y2']!, _arrowY2Meta),
+      );
+    }
     return context;
   }
 
@@ -2751,6 +2823,22 @@ class $WeightMeasurementsTable extends WeightMeasurements
         DriftSqlType.double,
         data['${effectivePrefix}arrow_angle'],
       )!,
+      arrowX1: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}arrow_x1'],
+      ),
+      arrowY1: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}arrow_y1'],
+      ),
+      arrowX2: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}arrow_x2'],
+      ),
+      arrowY2: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}arrow_y2'],
+      ),
     );
   }
 
@@ -2769,6 +2857,12 @@ class WeightMeasurement extends DataClass
   final double arrowX;
   final double arrowY;
   final double arrowAngle;
+
+  /// Estremi della linea di misura (null se non rilevati).
+  final double? arrowX1;
+  final double? arrowY1;
+  final double? arrowX2;
+  final double? arrowY2;
   const WeightMeasurement({
     required this.id,
     required this.weightEntryId,
@@ -2777,6 +2871,10 @@ class WeightMeasurement extends DataClass
     required this.arrowX,
     required this.arrowY,
     required this.arrowAngle,
+    this.arrowX1,
+    this.arrowY1,
+    this.arrowX2,
+    this.arrowY2,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2788,6 +2886,18 @@ class WeightMeasurement extends DataClass
     map['arrow_x'] = Variable<double>(arrowX);
     map['arrow_y'] = Variable<double>(arrowY);
     map['arrow_angle'] = Variable<double>(arrowAngle);
+    if (!nullToAbsent || arrowX1 != null) {
+      map['arrow_x1'] = Variable<double>(arrowX1);
+    }
+    if (!nullToAbsent || arrowY1 != null) {
+      map['arrow_y1'] = Variable<double>(arrowY1);
+    }
+    if (!nullToAbsent || arrowX2 != null) {
+      map['arrow_x2'] = Variable<double>(arrowX2);
+    }
+    if (!nullToAbsent || arrowY2 != null) {
+      map['arrow_y2'] = Variable<double>(arrowY2);
+    }
     return map;
   }
 
@@ -2800,6 +2910,18 @@ class WeightMeasurement extends DataClass
       arrowX: Value(arrowX),
       arrowY: Value(arrowY),
       arrowAngle: Value(arrowAngle),
+      arrowX1: arrowX1 == null && nullToAbsent
+          ? const Value.absent()
+          : Value(arrowX1),
+      arrowY1: arrowY1 == null && nullToAbsent
+          ? const Value.absent()
+          : Value(arrowY1),
+      arrowX2: arrowX2 == null && nullToAbsent
+          ? const Value.absent()
+          : Value(arrowX2),
+      arrowY2: arrowY2 == null && nullToAbsent
+          ? const Value.absent()
+          : Value(arrowY2),
     );
   }
 
@@ -2816,6 +2938,10 @@ class WeightMeasurement extends DataClass
       arrowX: serializer.fromJson<double>(json['arrowX']),
       arrowY: serializer.fromJson<double>(json['arrowY']),
       arrowAngle: serializer.fromJson<double>(json['arrowAngle']),
+      arrowX1: serializer.fromJson<double?>(json['arrowX1']),
+      arrowY1: serializer.fromJson<double?>(json['arrowY1']),
+      arrowX2: serializer.fromJson<double?>(json['arrowX2']),
+      arrowY2: serializer.fromJson<double?>(json['arrowY2']),
     );
   }
   @override
@@ -2829,6 +2955,10 @@ class WeightMeasurement extends DataClass
       'arrowX': serializer.toJson<double>(arrowX),
       'arrowY': serializer.toJson<double>(arrowY),
       'arrowAngle': serializer.toJson<double>(arrowAngle),
+      'arrowX1': serializer.toJson<double?>(arrowX1),
+      'arrowY1': serializer.toJson<double?>(arrowY1),
+      'arrowX2': serializer.toJson<double?>(arrowX2),
+      'arrowY2': serializer.toJson<double?>(arrowY2),
     };
   }
 
@@ -2840,6 +2970,10 @@ class WeightMeasurement extends DataClass
     double? arrowX,
     double? arrowY,
     double? arrowAngle,
+    Value<double?> arrowX1 = const Value.absent(),
+    Value<double?> arrowY1 = const Value.absent(),
+    Value<double?> arrowX2 = const Value.absent(),
+    Value<double?> arrowY2 = const Value.absent(),
   }) => WeightMeasurement(
     id: id ?? this.id,
     weightEntryId: weightEntryId ?? this.weightEntryId,
@@ -2848,6 +2982,10 @@ class WeightMeasurement extends DataClass
     arrowX: arrowX ?? this.arrowX,
     arrowY: arrowY ?? this.arrowY,
     arrowAngle: arrowAngle ?? this.arrowAngle,
+    arrowX1: arrowX1.present ? arrowX1.value : this.arrowX1,
+    arrowY1: arrowY1.present ? arrowY1.value : this.arrowY1,
+    arrowX2: arrowX2.present ? arrowX2.value : this.arrowX2,
+    arrowY2: arrowY2.present ? arrowY2.value : this.arrowY2,
   );
   WeightMeasurement copyWithCompanion(WeightMeasurementsCompanion data) {
     return WeightMeasurement(
@@ -2862,6 +3000,10 @@ class WeightMeasurement extends DataClass
       arrowAngle: data.arrowAngle.present
           ? data.arrowAngle.value
           : this.arrowAngle,
+      arrowX1: data.arrowX1.present ? data.arrowX1.value : this.arrowX1,
+      arrowY1: data.arrowY1.present ? data.arrowY1.value : this.arrowY1,
+      arrowX2: data.arrowX2.present ? data.arrowX2.value : this.arrowX2,
+      arrowY2: data.arrowY2.present ? data.arrowY2.value : this.arrowY2,
     );
   }
 
@@ -2874,7 +3016,11 @@ class WeightMeasurement extends DataClass
           ..write('valueCm: $valueCm, ')
           ..write('arrowX: $arrowX, ')
           ..write('arrowY: $arrowY, ')
-          ..write('arrowAngle: $arrowAngle')
+          ..write('arrowAngle: $arrowAngle, ')
+          ..write('arrowX1: $arrowX1, ')
+          ..write('arrowY1: $arrowY1, ')
+          ..write('arrowX2: $arrowX2, ')
+          ..write('arrowY2: $arrowY2')
           ..write(')'))
         .toString();
   }
@@ -2888,6 +3034,10 @@ class WeightMeasurement extends DataClass
     arrowX,
     arrowY,
     arrowAngle,
+    arrowX1,
+    arrowY1,
+    arrowX2,
+    arrowY2,
   );
   @override
   bool operator ==(Object other) =>
@@ -2899,7 +3049,11 @@ class WeightMeasurement extends DataClass
           other.valueCm == this.valueCm &&
           other.arrowX == this.arrowX &&
           other.arrowY == this.arrowY &&
-          other.arrowAngle == this.arrowAngle);
+          other.arrowAngle == this.arrowAngle &&
+          other.arrowX1 == this.arrowX1 &&
+          other.arrowY1 == this.arrowY1 &&
+          other.arrowX2 == this.arrowX2 &&
+          other.arrowY2 == this.arrowY2);
 }
 
 class WeightMeasurementsCompanion extends UpdateCompanion<WeightMeasurement> {
@@ -2910,6 +3064,10 @@ class WeightMeasurementsCompanion extends UpdateCompanion<WeightMeasurement> {
   final Value<double> arrowX;
   final Value<double> arrowY;
   final Value<double> arrowAngle;
+  final Value<double?> arrowX1;
+  final Value<double?> arrowY1;
+  final Value<double?> arrowX2;
+  final Value<double?> arrowY2;
   const WeightMeasurementsCompanion({
     this.id = const Value.absent(),
     this.weightEntryId = const Value.absent(),
@@ -2918,6 +3076,10 @@ class WeightMeasurementsCompanion extends UpdateCompanion<WeightMeasurement> {
     this.arrowX = const Value.absent(),
     this.arrowY = const Value.absent(),
     this.arrowAngle = const Value.absent(),
+    this.arrowX1 = const Value.absent(),
+    this.arrowY1 = const Value.absent(),
+    this.arrowX2 = const Value.absent(),
+    this.arrowY2 = const Value.absent(),
   });
   WeightMeasurementsCompanion.insert({
     this.id = const Value.absent(),
@@ -2927,6 +3089,10 @@ class WeightMeasurementsCompanion extends UpdateCompanion<WeightMeasurement> {
     this.arrowX = const Value.absent(),
     this.arrowY = const Value.absent(),
     this.arrowAngle = const Value.absent(),
+    this.arrowX1 = const Value.absent(),
+    this.arrowY1 = const Value.absent(),
+    this.arrowX2 = const Value.absent(),
+    this.arrowY2 = const Value.absent(),
   }) : weightEntryId = Value(weightEntryId),
        pointId = Value(pointId),
        valueCm = Value(valueCm);
@@ -2938,6 +3104,10 @@ class WeightMeasurementsCompanion extends UpdateCompanion<WeightMeasurement> {
     Expression<double>? arrowX,
     Expression<double>? arrowY,
     Expression<double>? arrowAngle,
+    Expression<double>? arrowX1,
+    Expression<double>? arrowY1,
+    Expression<double>? arrowX2,
+    Expression<double>? arrowY2,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2947,6 +3117,10 @@ class WeightMeasurementsCompanion extends UpdateCompanion<WeightMeasurement> {
       if (arrowX != null) 'arrow_x': arrowX,
       if (arrowY != null) 'arrow_y': arrowY,
       if (arrowAngle != null) 'arrow_angle': arrowAngle,
+      if (arrowX1 != null) 'arrow_x1': arrowX1,
+      if (arrowY1 != null) 'arrow_y1': arrowY1,
+      if (arrowX2 != null) 'arrow_x2': arrowX2,
+      if (arrowY2 != null) 'arrow_y2': arrowY2,
     });
   }
 
@@ -2958,6 +3132,10 @@ class WeightMeasurementsCompanion extends UpdateCompanion<WeightMeasurement> {
     Value<double>? arrowX,
     Value<double>? arrowY,
     Value<double>? arrowAngle,
+    Value<double?>? arrowX1,
+    Value<double?>? arrowY1,
+    Value<double?>? arrowX2,
+    Value<double?>? arrowY2,
   }) {
     return WeightMeasurementsCompanion(
       id: id ?? this.id,
@@ -2967,6 +3145,10 @@ class WeightMeasurementsCompanion extends UpdateCompanion<WeightMeasurement> {
       arrowX: arrowX ?? this.arrowX,
       arrowY: arrowY ?? this.arrowY,
       arrowAngle: arrowAngle ?? this.arrowAngle,
+      arrowX1: arrowX1 ?? this.arrowX1,
+      arrowY1: arrowY1 ?? this.arrowY1,
+      arrowX2: arrowX2 ?? this.arrowX2,
+      arrowY2: arrowY2 ?? this.arrowY2,
     );
   }
 
@@ -2994,6 +3176,18 @@ class WeightMeasurementsCompanion extends UpdateCompanion<WeightMeasurement> {
     if (arrowAngle.present) {
       map['arrow_angle'] = Variable<double>(arrowAngle.value);
     }
+    if (arrowX1.present) {
+      map['arrow_x1'] = Variable<double>(arrowX1.value);
+    }
+    if (arrowY1.present) {
+      map['arrow_y1'] = Variable<double>(arrowY1.value);
+    }
+    if (arrowX2.present) {
+      map['arrow_x2'] = Variable<double>(arrowX2.value);
+    }
+    if (arrowY2.present) {
+      map['arrow_y2'] = Variable<double>(arrowY2.value);
+    }
     return map;
   }
 
@@ -3006,7 +3200,11 @@ class WeightMeasurementsCompanion extends UpdateCompanion<WeightMeasurement> {
           ..write('valueCm: $valueCm, ')
           ..write('arrowX: $arrowX, ')
           ..write('arrowY: $arrowY, ')
-          ..write('arrowAngle: $arrowAngle')
+          ..write('arrowAngle: $arrowAngle, ')
+          ..write('arrowX1: $arrowX1, ')
+          ..write('arrowY1: $arrowY1, ')
+          ..write('arrowX2: $arrowX2, ')
+          ..write('arrowY2: $arrowY2')
           ..write(')'))
         .toString();
   }
@@ -4573,6 +4771,10 @@ typedef $$WeightMeasurementsTableCreateCompanionBuilder =
       Value<double> arrowX,
       Value<double> arrowY,
       Value<double> arrowAngle,
+      Value<double?> arrowX1,
+      Value<double?> arrowY1,
+      Value<double?> arrowX2,
+      Value<double?> arrowY2,
     });
 typedef $$WeightMeasurementsTableUpdateCompanionBuilder =
     WeightMeasurementsCompanion Function({
@@ -4583,6 +4785,10 @@ typedef $$WeightMeasurementsTableUpdateCompanionBuilder =
       Value<double> arrowX,
       Value<double> arrowY,
       Value<double> arrowAngle,
+      Value<double?> arrowX1,
+      Value<double?> arrowY1,
+      Value<double?> arrowX2,
+      Value<double?> arrowY2,
     });
 
 final class $$WeightMeasurementsTableReferences
@@ -4669,6 +4875,26 @@ class $$WeightMeasurementsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<double> get arrowX1 => $composableBuilder(
+    column: $table.arrowX1,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get arrowY1 => $composableBuilder(
+    column: $table.arrowY1,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get arrowX2 => $composableBuilder(
+    column: $table.arrowX2,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get arrowY2 => $composableBuilder(
+    column: $table.arrowY2,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$WeightEntriesTableFilterComposer get weightEntryId {
     final $$WeightEntriesTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -4750,6 +4976,26 @@ class $$WeightMeasurementsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get arrowX1 => $composableBuilder(
+    column: $table.arrowX1,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get arrowY1 => $composableBuilder(
+    column: $table.arrowY1,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get arrowX2 => $composableBuilder(
+    column: $table.arrowX2,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get arrowY2 => $composableBuilder(
+    column: $table.arrowY2,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$WeightEntriesTableOrderingComposer get weightEntryId {
     final $$WeightEntriesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -4822,6 +5068,18 @@ class $$WeightMeasurementsTableAnnotationComposer
     column: $table.arrowAngle,
     builder: (column) => column,
   );
+
+  GeneratedColumn<double> get arrowX1 =>
+      $composableBuilder(column: $table.arrowX1, builder: (column) => column);
+
+  GeneratedColumn<double> get arrowY1 =>
+      $composableBuilder(column: $table.arrowY1, builder: (column) => column);
+
+  GeneratedColumn<double> get arrowX2 =>
+      $composableBuilder(column: $table.arrowX2, builder: (column) => column);
+
+  GeneratedColumn<double> get arrowY2 =>
+      $composableBuilder(column: $table.arrowY2, builder: (column) => column);
 
   $$WeightEntriesTableAnnotationComposer get weightEntryId {
     final $$WeightEntriesTableAnnotationComposer composer = $composerBuilder(
@@ -4911,6 +5169,10 @@ class $$WeightMeasurementsTableTableManager
                 Value<double> arrowX = const Value.absent(),
                 Value<double> arrowY = const Value.absent(),
                 Value<double> arrowAngle = const Value.absent(),
+                Value<double?> arrowX1 = const Value.absent(),
+                Value<double?> arrowY1 = const Value.absent(),
+                Value<double?> arrowX2 = const Value.absent(),
+                Value<double?> arrowY2 = const Value.absent(),
               }) => WeightMeasurementsCompanion(
                 id: id,
                 weightEntryId: weightEntryId,
@@ -4919,6 +5181,10 @@ class $$WeightMeasurementsTableTableManager
                 arrowX: arrowX,
                 arrowY: arrowY,
                 arrowAngle: arrowAngle,
+                arrowX1: arrowX1,
+                arrowY1: arrowY1,
+                arrowX2: arrowX2,
+                arrowY2: arrowY2,
               ),
           createCompanionCallback:
               ({
@@ -4929,6 +5195,10 @@ class $$WeightMeasurementsTableTableManager
                 Value<double> arrowX = const Value.absent(),
                 Value<double> arrowY = const Value.absent(),
                 Value<double> arrowAngle = const Value.absent(),
+                Value<double?> arrowX1 = const Value.absent(),
+                Value<double?> arrowY1 = const Value.absent(),
+                Value<double?> arrowX2 = const Value.absent(),
+                Value<double?> arrowY2 = const Value.absent(),
               }) => WeightMeasurementsCompanion.insert(
                 id: id,
                 weightEntryId: weightEntryId,
@@ -4937,6 +5207,10 @@ class $$WeightMeasurementsTableTableManager
                 arrowX: arrowX,
                 arrowY: arrowY,
                 arrowAngle: arrowAngle,
+                arrowX1: arrowX1,
+                arrowY1: arrowY1,
+                arrowX2: arrowX2,
+                arrowY2: arrowY2,
               ),
           withReferenceMapper: (p0) => p0
               .map(

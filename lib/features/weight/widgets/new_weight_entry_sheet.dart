@@ -1,11 +1,13 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/db/database.dart';
 import '../../../core/db/providers.dart';
+import '../../../core/ml/pose_service.dart';
+import 'add_point_dialog.dart';
+import 'full_screen_measure_editor.dart';
+import 'interactive_preview.dart';
 import '../../../core/design/clay.dart';
 import '../../../core/design/palette.dart';
 import '../../../core/utils/photos.dart';
@@ -43,6 +45,9 @@ class _NewWeightEntrySheetState extends ConsumerState<NewWeightEntrySheet> {
   String? _photoRel;
   String? _photoAbs;
   String? _error;
+  Map<String, MeasurePos> _posePositions = {};
+  var _nextTempId = -1;
+  bool _detecting = false;
 
   @override
   void initState() {
@@ -78,6 +83,15 @@ class _NewWeightEntrySheetState extends ConsumerState<NewWeightEntrySheet> {
   }
 
   Future<void> _pick(bool camera) async {
+    final l = AppLocalizations.of(context)!;
+    // Guida allo scatto prima di aprire la fotocamera.
+    if (camera && mounted) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => _ShotGuideDialog(onOk: () => Navigator.of(ctx).pop(true)),
+      );
+      if (ok != true) return;
+    }
     final rel = camera
         ? await PhotoStorage.pickFromCamera()
         : await PhotoStorage.pickFromGallery();
@@ -86,21 +100,102 @@ class _NewWeightEntrySheetState extends ConsumerState<NewWeightEntrySheet> {
     setState(() {
       _photoRel = rel;
       _photoAbs = abs;
+      _posePositions = {};
+      _detecting = true;
     });
+    // Pose detection on-device: posiziona le frecce dei punti standard.
+    var detected = false;
+    try {
+      final pose = await PoseService.analyze(abs);
+      if (pose != null) {
+        detected = true;
+        if (mounted) {
+          setState(() => _posePositions = pose);
+        }
+      }
+    } catch (_) {
+      // Rilevamento non disponibile: frecce in posizione centrale.
+    }
+    if (mounted) {
+      setState(() => _detecting = false);
+      if (!detected) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l.poseNotFound)),
+        );
+      }
+    }
   }
 
-  Future<void> _addCustomPoint() async {
+  void _addCustomPoint() {
     final name = _customName.text.trim();
     final cm = double.tryParse(_customCm.text.replaceAll(',', '.'));
     if (name.isEmpty || cm == null) return;
-    final db = ref.read(databaseProvider);
-    final id = await db.addCustomPoint(name);
     setState(() {
+      // Punto PENDING locale (id negativo): salvato nel DB solo insieme
+      // alla rilevazione. Così la X lo cancella davvero.
+      final id = _nextTempId--;
       _points = [..._points, MeasurementPoint(id: id, key: 'custom:$name', label: name, isCustom: true)];
       _cmControllers[id] = TextEditingController(text: _customCm.text);
       _customName.clear();
       _customCm.clear();
     });
+  }
+
+  /// Punto personalizzato aggiunto toccando la foto (editor o anteprima).
+  Future<void> _addPointFromPhoto(double x, double y) async {
+    final result = await showAddPointDialog(context);
+    if (result == null || !mounted) return;
+    setState(() {
+      // Pending locale: vedi _addCustomPoint.
+      final id = _nextTempId--;
+      _points = [
+        ..._points,
+        MeasurementPoint(
+          id: id,
+          key: 'custom:${result.name}',
+          label: result.name,
+          isCustom: true,
+        ),
+      ];
+      _cmControllers[id] = TextEditingController(text: result.cm.toStringAsFixed(1));
+      _posePositions['custom:${result.name}'] = MeasurePos(x, y, null, null, null, null);
+    });
+  }
+
+  /// Rimuove un punto personalizzato: i pending (id < 0) spariscono e
+  /// basta; quelli già nel DB vengono cancellati PERMANENTEMENTE (con
+  /// tutte le loro misure passate).
+  Future<void> _removeCustomPoint(MeasurementPoint p) async {
+    if (p.id > 0) {
+      final db = ref.read(databaseProvider);
+      await db.deletePointCascade(p.id);
+    }
+    if (!mounted) return;
+    setState(() {
+      _points = _points.where((e) => e.id != p.id).toList();
+      _posePositions.remove(p.key);
+      _cmControllers.remove(p.id)?.dispose();
+    });
+  }
+
+  /// Apre l'editor a tutto schermo per sistemare i punti comodi.
+  Future<void> _openEditor() async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder:
+            (ctx) => FullScreenMeasureEditor(
+              absPath: _photoAbs!,
+              positions: _posePositions,
+              points: _points,
+              cmOf: (id) => double.tryParse(
+                (_cmControllers[id]?.text ?? '').replaceAll(',', '.'),
+              ),
+              onAddPoint: (x, y) => _addPointFromPhoto(x, y),
+            ),
+      ),
+    );
+    if (mounted) setState(() {});
   }
 
   Future<void> _save() async {
@@ -114,11 +209,29 @@ class _NewWeightEntrySheetState extends ConsumerState<NewWeightEntrySheet> {
     final fat = double.tryParse(_fat.text.replaceAll(',', '.'));
     final muscle = double.tryParse(_muscle.text.replaceAll(',', '.'));
 
-    final measures = <(int, double, double, double, double)>[];
+    // I punti pending (id negativi) vengono creati ora nel DB.
+    final realIds = <int, int>{};
+    for (final p in _points.where((e) => e.id < 0)) {
+      realIds[p.id] = await db.addCustomPoint(p.label);
+    }
+
+    final measures = <MeasureToSave>[];
     for (final p in _points) {
       final cm = double.tryParse(_cmControllers[p.id]!.text.replaceAll(',', '.'));
       if (cm != null && cm > 0) {
-        measures.add((p.id, cm, 0.5, 0.5, 0));
+        final pos = _posePositions[p.key] ?? const MeasurePos(0.5, 0.5, null, null, null, null);
+        measures.add(
+          MeasureToSave(
+            realIds[p.id] ?? p.id,
+            cm,
+            pos.cx,
+            pos.cy,
+            x1: pos.x1,
+            y1: pos.y1,
+            x2: pos.x2,
+            y2: pos.y2,
+          ),
+        );
       }
     }
 
@@ -205,6 +318,19 @@ class _NewWeightEntrySheetState extends ConsumerState<NewWeightEntrySheet> {
                           ),
                         ),
                       ),
+                      if (p.isCustom)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: ClayPressable(
+                            onTap: () => _removeCustomPoint(p),
+                            pressedScale: 0.85,
+                            child: const Icon(
+                              Icons.close_rounded,
+                              size: 16,
+                              color: Color(0xFFD25A4A),
+                            ),
+                          ),
+                        ),
                       Expanded(
                         flex: 2,
                         child: _Field(
@@ -258,15 +384,31 @@ class _NewWeightEntrySheetState extends ConsumerState<NewWeightEntrySheet> {
                   ),
                 ],
               ),
+              if (_detecting)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    guardFirstGlyph(l.detecting),
+                    style: const TextStyle(
+                      fontFamily: 'Nunito',
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: ClayPalette.accentDark,
+                    ),
+                  ),
+                ),
               if (_photoAbs != null) ...[
                 const SizedBox(height: 10),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.file(
-                    File(_photoAbs!),
-                    height: 150,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
+                GestureDetector(
+                  onTap: _openEditor,
+                  child: InteractivePreview(
+                    absPath: _photoAbs!,
+                    positions: _posePositions,
+                    points: _points,
+                    cmOf: (id) => double.tryParse(
+                      (_cmControllers[id]?.text ?? '').replaceAll(',', '.'),
+                    ),
+                    onTap: (_, _) {},
                   ),
                 ),
               ],
@@ -352,4 +494,129 @@ class _Field extends StatelessWidget {
       ),
     );
   }
+}
+
+
+/// Guida mostrata prima di aprire la fotocamera: silhouette di
+/// riferimento con braccia aperte + consigli per una detection precisa.
+class _ShotGuideDialog extends StatelessWidget {
+  const _ShotGuideDialog({required this.onOk});
+
+  final VoidCallback onOk;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    return Dialog(
+      backgroundColor: const Color(0xFFF7FBFA),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+      child: Padding(
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              guardFirstGlyph(l.shotGuideTitle),
+              style: const TextStyle(
+                fontFamily: 'Nunito',
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: ClayPalette.text,
+              ),
+            ),
+            const SizedBox(height: 14),
+            SizedBox(
+              width: 110,
+              height: 150,
+              child: CustomPaint(
+                painter: _GuideSilhouettePainter(),
+                size: Size.infinite,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              guardFirstGlyph(l.shotGuideBody),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontFamily: 'Nunito',
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: ClayPalette.textSoft,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ClayButton(icon: Icons.photo_camera_rounded, label: l.shotGuideOk, onTap: onOk),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Silhouette piatta con braccia leggermente aperte (riferimento scatto).
+class _GuideSilhouettePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final fill = Paint()..color = ClayPalette.accent.withValues(alpha: 0.45);
+    final outline =
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..color = ClayPalette.accentDark;
+    final w = size.width;
+
+    void shape(Path path) {
+      canvas.drawPath(path, fill);
+      canvas.drawPath(path, outline);
+    }
+
+    shape(
+      Path()
+        ..addOval(
+          Rect.fromCenter(center: Offset(w / 2, w * 0.14), width: w * 0.20, height: w * 0.24),
+        ),
+    );
+    shape(
+      Path()
+        ..addRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromCenter(center: Offset(w / 2, w * 0.50), width: w * 0.34, height: w * 0.58),
+            Radius.circular(w * 0.10),
+          ),
+        ),
+    );
+    for (final side in [-1.0, 1.0]) {
+      shape(
+        Path()
+          ..addRRect(
+            RRect.fromRectAndRadius(
+              Rect.fromCenter(
+                center: Offset(w / 2 + side * w * 0.29, w * 0.50),
+                width: w * 0.12,
+                height: w * 0.52,
+              ),
+              Radius.circular(w * 0.06),
+            ),
+          ),
+      );
+    }
+    for (final side in [-1.0, 1.0]) {
+      shape(
+        Path()
+          ..addRRect(
+            RRect.fromRectAndRadius(
+              Rect.fromCenter(
+                center: Offset(w / 2 + side * w * 0.12, w * 1.02),
+                width: w * 0.13,
+                height: w * 0.72,
+              ),
+              Radius.circular(w * 0.065),
+            ),
+          ),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

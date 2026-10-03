@@ -47,6 +47,7 @@ dependencies:
   path: ^1.9.1
   image_picker: ^1.2.3
   uuid: ^4.6.0
+  google_mlkit_pose_detection: ^0.16.1
 
 dev_dependencies:
   flutter_test:
